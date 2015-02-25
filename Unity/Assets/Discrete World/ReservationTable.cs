@@ -32,4 +32,8 @@ public class ReservationTable {
 			return false;
 		return true;
 	}
+
+	public void Free(State key) {
+		rTable [key] = 0;
+	}
 }

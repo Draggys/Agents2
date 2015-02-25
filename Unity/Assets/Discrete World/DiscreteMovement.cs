@@ -32,9 +32,9 @@ public class DiscreteMovement : MonoBehaviour {
 		Node startNode = grid.grid [Convert.ToInt32(grid.mapData.start.x), Convert.ToInt32 (grid.mapData.start.y)];
 		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
 
-		agents.Add (new Agent ("agent1", endNode, startNode));
+		agents.Add (new Agent ("agent1", startNode, endNode));
 		agents [0].agent.renderer.material.color = Color.blue;
-		agents.Add (new Agent ("agent2", startNode, endNode));
+		agents.Add (new Agent ("agent2", endNode, startNode));
 		agents [1].agent.renderer.material.color = Color.green;
 
 		StartAllAgents ();
@@ -72,14 +72,19 @@ public class DiscreteMovement : MonoBehaviour {
 				goto StartOver;
 			}
 
-			int i = 1;
+			int i = 1;	
 			foreach (Node node in agent.path) {
 				agent.agent.transform.position = node.worldPosition;
+
 				if (pastNode != null) {
 					State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
-					grid.rTable.Add (state, 0);
+					grid.rTable.Free (state);
 				}
 				pastNode = node;
+
+				
+				print(agent.id + ": [" + node.gridPosX + ", " + node.gridPosY + ", " + i + "] "
+				      + grid.rTable.Occupied (new State(node.gridPosX, node.gridPosY, i)));
 
 				//yield return null;
 				yield return new WaitForSeconds (0.5f);
@@ -89,7 +94,7 @@ public class DiscreteMovement : MonoBehaviour {
 
 			if(pastNode != null && start != agent.end) {
 				State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
-				grid.rTable.Add (state, 0);
+				grid.rTable.Free (state);
             }
 
 		}

@@ -5,7 +5,7 @@ using System;
 
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 2000;
+	int d = 8000;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -47,7 +47,7 @@ public class AStar : MonoBehaviour{
 			foreach(Node node in currentNode.neighbours){
 				float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
 
-				State state = new State(node.gridPosX, node.gridPosY, tmpPath.Count);
+				State state = new State(node.gridPosX, node.gridPosY, tmpPath.Count + 1);
 
 				if (!costSoFar.ContainsKey (node) || newCost < costSoFar[node]) {
 					if(node.walkable) {
