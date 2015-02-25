@@ -50,10 +50,23 @@ public class DiscreteMovement : MonoBehaviour {
 	public List<Node> RequestPath(Node startNode, Node endNode) {
 		List<Node> path = astar.STAStar (startNode, endNode);
 	
+		/*
 		int i = 1;
 		foreach (Node node in path) {
 			State state = new State(node.gridPosX, node.gridPosY, i++);
 			grid.rTable.Add (state, 1);
+		}
+		*/
+
+		int i = 1;
+		for(int j = 0; j < path.Count; j++) {
+			if(j != path.Count - 1) {
+				State cState = new State(path[j].gridPosX, path[j].gridPosY, i);
+				State nState = new State(path[j+1].gridPosX, path[j+1].gridPosY, i); 
+				grid.rTable.Add (cState, 1);
+				grid.rTable.Add (nState, 1);
+			}
+			i++;
 		}
 
 		return path;
@@ -82,7 +95,6 @@ public class DiscreteMovement : MonoBehaviour {
 				}
 				pastNode = node;
 
-				
 				print(agent.id + ": [" + node.gridPosX + ", " + node.gridPosY + ", " + i + "] "
 				      + grid.rTable.Occupied (new State(node.gridPosX, node.gridPosY, i)));
 
