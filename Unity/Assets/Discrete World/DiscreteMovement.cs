@@ -46,10 +46,12 @@ public class DiscreteMovement : MonoBehaviour {
 		agents.Add (new Agent ("Magenta", grid.grid[19, 9], w2));
 		agents [1].agent.renderer.material.color = Color.magenta;
 
-		/*
-		agents.Add (new Agent ("Yellow", endNode, w1));
-		agents [1].agent.renderer.material.color = Color.yellow;
-		*/
+		List<Node> w3 = new List<Node> ();
+		w3.Add (grid.grid [19, 8]);
+		w3.Add (grid.grid [0, 8]);
+		agents.Add (new Agent ("Yellow", grid.grid[1, 9], w3));
+		agents [2].agent.renderer.material.color = Color.yellow;
+
 		//	Node node = grid.grid [19, 0];
 		//	debug = node.neighbours;
 		
