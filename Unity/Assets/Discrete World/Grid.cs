@@ -123,7 +123,7 @@ public class Grid : MonoBehaviour {
 			Node playerNode = NodeFromWorldPoint(player.position);
 			foreach (Node n in grid) {
 				Gizmos.color = (n.walkable) ? Color.white : Color.red;
-				Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
+		//		Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
 			}
 		}
 

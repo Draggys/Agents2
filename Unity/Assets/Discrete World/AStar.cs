@@ -14,7 +14,7 @@ public struct PathInfo {
 }
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 4;
+	int d = 8;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -85,7 +85,7 @@ public class AStar : MonoBehaviour{
 
 		path = new List<Node> ();
 		while (path.Count != d)
-			path.Add (targetNode);
+			path.Add (startNode);
 		ret = new PathInfo (path, false);
 		return ret;
 	}

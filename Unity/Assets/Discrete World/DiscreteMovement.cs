@@ -158,8 +158,7 @@ public class DiscreteMovement : MonoBehaviour {
 				yield return new WaitForSeconds (0.2f);
 			}
 			
-			//start = pathInfo.path[pathInfo.path.Count - 1];
-			start = pos;
+			start = pathInfo.path[pathInfo.path.Count - 1];
 			
 			if(pastNode != null) {
 				State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
