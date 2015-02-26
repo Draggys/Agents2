@@ -24,7 +24,7 @@ public class DiscreteMovement : MonoBehaviour {
 	List<Agent> agents = new List<Agent> ();
 	AStar astar;
 	Grid grid;
-
+	
 	List<Node> debug = null;
 	
 	void Start () {
@@ -33,22 +33,23 @@ public class DiscreteMovement : MonoBehaviour {
 		astar = new AStar (grid.rTable);
 		Node startNode = grid.grid [Convert.ToInt32(grid.mapData.start.x), Convert.ToInt32 (grid.mapData.start.y)];
 		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
-
+		
 		List<Node> w1 = new List<Node> ();
 		w1.Add (endNode);
 		w1.Add (startNode);
 		w1.Add (grid.grid [19, 1]);
-		agents.Add (new Agent("Blue", startNode, w1));
-		agents [0].agent.renderer.material.color = Color.blue;
-		agents.Add (new Agent ("Green", endNode, w1));
-		agents [1].agent.renderer.material.color = Color.green;
-		agents.Add (new Agent ("Black", grid.grid[0, 10], w1));
-		agents [2].agent.renderer.material.color = Color.black;
+		agents.Add (new Agent("Red", startNode, w1));
+		agents [0].agent.renderer.material.color = Color.red;
+		
+		agents.Add (new Agent ("Magenta", grid.grid[0, 10], w1));
+		agents [1].agent.renderer.material.color = Color.magenta;
 
-
-	//	Node node = grid.grid [19, 0];
-	//	debug = node.neighbours;
-
+		agents.Add (new Agent ("Yellow", endNode, w1));
+		agents [1].agent.renderer.material.color = Color.yellow;
+		
+		//	Node node = grid.grid [19, 0];
+		//	debug = node.neighbours;
+		
 		StartAllAgents ();
 	}
 	
@@ -59,8 +60,8 @@ public class DiscreteMovement : MonoBehaviour {
 		}
 	}
 	
-	public List<Node> RequestPath(Node startNode, Node endNode) {
-		List<Node> path = astar.STAStar (startNode, endNode);
+	public PathInfo RequestPath(Node startNode, Node endNode) {
+		PathInfo pathInfo = astar.STAStar (startNode, endNode);
 		
 		/*
 		int i = 1;
@@ -71,93 +72,107 @@ public class DiscreteMovement : MonoBehaviour {
 		*/
 		
 		int i = 1;
-		for(int j = 0; j < path.Count; j++) {
-			if(j != path.Count - 1) {
-				State cState = new State(path[j].gridPosX, path[j].gridPosY, i);
-				State nState = new State(path[j+1].gridPosX, path[j+1].gridPosY, i); 
+		for(int j = 0; j < pathInfo.path.Count; j++) {
+			if(j != pathInfo.path.Count - 1) {
+				State cState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i);
+				State nState = new State(pathInfo.path[j+1].gridPosX, pathInfo.path[j+1].gridPosY, i); 
 				grid.rTable.Add (cState, 1);
 				grid.rTable.Add (nState, 2);
 			}
 			i++;
 		}
 		
-		return path;
+		return pathInfo;
 	}
 	
 	IEnumerator Move(Agent agent) {
 		Node start = agent.start;
 		int r = 0;
 		Node end = agent.waypoints[r];
-		List<Node> path;
+		PathInfo pathInfo;
 		while (true) {
-		StartOver:
 			Node pastNode = null;
-			print ("----------");
-			path = RequestPath (start, end);
-			/*
-			print (agent.id + ": Requesting: " + start.worldPosition + " -> " + end.worldPosition + "\n"
-			       + "With result: " + path.Count
-			       + " My position: " + agent.agent.transform.position);
-			       */
+			pathInfo = RequestPath (start, end);
 			print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
-			       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + path.Count);
-            
-            if(path.Count == 0) {
-				if(start == end) {
-					r++;
-					if(r < agent.waypoints.Count) {
-						end = agent.waypoints[r];
-					}
-					else {
-						print (agent.id + " yield break");
-						yield break;
-					}
+			       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
+			       " and success: " + pathInfo.reachedDestination);
+	
+			if(pathInfo.reachedDestination) {
+				r++;
+				if(r < agent.waypoints.Count) {
+					end = agent.waypoints[r];
 				}
 
-                print (agent.id + ": pause");
-				yield return new WaitForSeconds(0.5f);
-				goto StartOver;
+				// Test remove when reached final goal
+				/*
+				if(r == agent.waypoints.Count + 1 && agent.id == "Red") {
+					// remove when reached final destination
+					print (agent.id + " yield break (" + r + "/" + agent.waypoints.Count + ")");
+					int t = 1;
+					foreach (Node node in pathInfo.path) {
+						State state = new State(node.gridPosX, node.gridPosY, t++);
+						grid.rTable.Free (state);
+					}
+					yield break;
+				}
+				*/
+
 			}
 			
-			int i = 1;	
-			foreach (Node node in path) {
-				agent.agent.transform.position = node.worldPosition;
+			int i = 1;
+			Node pos = pathInfo.path[pathInfo.path.Count - 1];
+			foreach (Node node in pathInfo.path) {
+
+				// Extra collision rule since request order can cause trouble
+				bool walkable = true;
+				foreach(Agent a in agents) {
+					if(a.agent.transform.position == node.worldPosition) {
+						walkable = false;
+					}
+				}
+				if(walkable){
+					agent.agent.transform.position = node.worldPosition;
+					pos = node;
+				}
 				
 				if (pastNode != null) {
 					State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
 					grid.rTable.Free (state);
 					state.t = state.t - 1;
 					grid.rTable.Free (state);
-
+					
 					//print (agent.id + " Freeing: " + state.x + ", " + state.y + ", " + state.t);
-                }
-                pastNode = node;
-                /*
+				}
+				pastNode = node;
+				/*
                 print(agent.id + ": [" + node.gridPosX + ", " + node.gridPosY + ", " + i + "] "
                       + grid.rTable.Occupied (new State(node.gridPosX, node.gridPosY, i)));
                 */
-                //yield return null;
-                yield return new WaitForSeconds (0.2f);
-            }
-            
-            start = path[path.Count - 1];
-            
-            if(pastNode != null) {
-                State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
+
+				yield return null;
+				//yield return new WaitForSeconds (0.2f);
+			}
+			
+			//start = pathInfo.path[pathInfo.path.Count - 1];
+			start = pos;
+			
+			if(pastNode != null) {
+				State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
 				grid.rTable.Free (state);
 				state.t = state.t - 1;
 				grid.rTable.Free (state);
-            }
-
-        }
+			}
+			
+		}
 	}
 	
 	void OnDrawGizmos() {
+
 		Gizmos.color = Color.cyan;
 		foreach (KeyValuePair<State, int> p in grid.rTable.rTable) {
 			if(p.Value != 0)
 				Gizmos.DrawCube (grid.grid [p.Key.x, p.Key.y].worldPosition - Vector3.up, Vector3.one);
-        }
+		}
 		Gizmos.color = Color.yellow;
 		if (debug != null) {
 			foreach (Node node in debug) {
@@ -165,5 +180,5 @@ public class DiscreteMovement : MonoBehaviour {
 				//print ("drawing: " + node.gridPosX + ", " + node.gridPosY);
 			}
 		}
-    }
+	}
 }

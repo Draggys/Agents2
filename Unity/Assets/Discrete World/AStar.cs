@@ -3,9 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
+public struct PathInfo {
+	public List<Node> path;
+	public bool reachedDestination;
+
+	public PathInfo(List<Node> path, bool reachedDestination) {
+		this.path = path;
+		this.reachedDestination = reachedDestination;
+	}
+}
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 1000;
+	int d = 20;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -16,10 +25,14 @@ public class AStar : MonoBehaviour{
 		return directions [dir];
 	}
 
-	public List<Node> STAStar(Node startNode, Node targetNode) {
+	public PathInfo STAStar(Node startNode, Node targetNode) {
+		PathInfo ret;
+		List<Node> path;
 		if (startNode == targetNode) {
-			print("STA* start == target");
-			return new List<Node> ();
+			path = new List<Node> ();
+			while(path.Count != d)
+				path.Add (targetNode);
+			ret = new PathInfo(path, true);
 		}
 		
 		PriorityQueue<Node, float> frontier = new PriorityQueue<Node, float> ();
@@ -31,26 +44,27 @@ public class AStar : MonoBehaviour{
 		costSoFar [startNode] = 0;
 		
 		Node currentNode;
-		List<Node> tmpPath = null;
 		while (frontier.Count() != 0) {
 			currentNode = frontier.Dequeue ();
 
-			tmpPath = ConstructPath(startNode, currentNode, cameFrom);
+			path = ConstructPath(startNode, currentNode, cameFrom);
             
-            if(tmpPath.Count == d){
-		//		print ("Depth cut off");
-				return tmpPath;
+            if(path.Count == d){
+				ret = new PathInfo(path, false);
+				return ret;
 			}
 
 			if(currentNode == targetNode) {
-		//		print ("Target found");
-				return ConstructPath(startNode, currentNode, cameFrom);
+				while(path.Count != d) 
+					path.Add (targetNode);
+				ret = new PathInfo(path, true);
+				return ret;
 			}
 
 			foreach(Node node in currentNode.neighbours){
 				float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
 
-				State state = new State(node.gridPosX, node.gridPosY, tmpPath.Count + 1);
+				State state = new State(node.gridPosX, node.gridPosY, path.Count + 1);
 
 				if (!costSoFar.ContainsKey (node) || newCost < costSoFar[node]) {
 					if(node.walkable) {
@@ -66,7 +80,11 @@ public class AStar : MonoBehaviour{
 			}
 		}
 
-		return new List<Node> ();
+		path = new List<Node> ();
+		while (path.Count != d)
+			path.Add (targetNode);
+		ret = new PathInfo (path, false);
+		return ret;
 	}
 
 	public List<Node> AStarSearch(Node startNode, Node targetNode) {
