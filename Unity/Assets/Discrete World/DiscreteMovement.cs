@@ -130,10 +130,10 @@ public class DiscreteMovement : MonoBehaviour {
 						walkable = false;
 					}
 				}
-				if(walkable){
+				//if(walkable){
 					agent.agent.transform.position = node.worldPosition;
 					pos = node;
-				}
+				//}
 				
 				if (pastNode != null) {
 					State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
@@ -149,8 +149,8 @@ public class DiscreteMovement : MonoBehaviour {
                       + grid.rTable.Occupied (new State(node.gridPosX, node.gridPosY, i)));
                 */
 
-				yield return null;
-				//yield return new WaitForSeconds (0.2f);
+				//yield return null;
+				yield return new WaitForSeconds (0.2f);
 			}
 			
 			//start = pathInfo.path[pathInfo.path.Count - 1];
@@ -177,7 +177,7 @@ public class DiscreteMovement : MonoBehaviour {
 		if (debug != null) {
 			foreach (Node node in debug) {
 				Gizmos.DrawCube (node.worldPosition, Vector3.one);
-				//print ("drawing: " + node.gridPosX + ", " + node.gridPosY);
+				print ("drawing: " + node.gridPosX + ", " + node.gridPosY);
 			}
 		}
 	}

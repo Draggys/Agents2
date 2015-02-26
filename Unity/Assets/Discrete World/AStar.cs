@@ -14,7 +14,7 @@ public struct PathInfo {
 }
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 20;
+	int d = 8;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -70,8 +70,9 @@ public class AStar : MonoBehaviour{
 					if(node.walkable) {
 						if(!rTable.Occupied (state)) {
 							costSoFar[node] = newCost;
-							float priority = newCost + GridHeuristic (targetNode, node);
+							//float priority = newCost + GridHeuristic (targetNode, node);
 							//float priority = newCost + Heuristic (targetNode.worldPosition, node.worldPosition);
+							float priority = newCost + TrueDistance (targetNode, node);
 							frontier.Enqueue (node, priority);
 							cameFrom[node] = currentNode;
 						}
@@ -130,6 +131,17 @@ public class AStar : MonoBehaviour{
 
 	float GridHeuristic(Node A, Node B) {
 		return Mathf.Abs (A.gridPosX - B.gridPosX) + Mathf.Abs (A.gridPosY - B.gridPosY);
+	}
+
+	float TrueDistance(Node A, Node B) {
+		List<Node> path = AStarSearch (A, B);
+		float cost = 0;
+		Node pastNode = A;
+		foreach (Node node in path) {
+			cost = cost + GetCost (pastNode, node);
+			pastNode = node;
+		}
+		return cost;
 	}
 
 	List<Node> ConstructPath(Node start, Node target, Dictionary<Node, Node> cameFrom) {
