@@ -5,7 +5,7 @@ using System;
 
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 8000;
+	int d = 1000;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -17,8 +17,10 @@ public class AStar : MonoBehaviour{
 	}
 
 	public List<Node> STAStar(Node startNode, Node targetNode) {
-		if (startNode == targetNode)
-			return new List<Node>();
+		if (startNode == targetNode) {
+			print("STA* start == target");
+			return new List<Node> ();
+		}
 		
 		PriorityQueue<Node, float> frontier = new PriorityQueue<Node, float> ();
 		Dictionary<Node, Node> cameFrom = new Dictionary<Node, Node> ();
@@ -29,20 +31,21 @@ public class AStar : MonoBehaviour{
 		costSoFar [startNode] = 0;
 		
 		Node currentNode;
+		List<Node> tmpPath = null;
 		while (frontier.Count() != 0) {
 			currentNode = frontier.Dequeue ();
 
-			List<Node> tmpPath = ConstructPath(startNode, currentNode, cameFrom);
-			if(tmpPath.Count == d){
-				print ("Depth cut off");
+			tmpPath = ConstructPath(startNode, currentNode, cameFrom);
+            
+            if(tmpPath.Count == d){
+		//		print ("Depth cut off");
 				return tmpPath;
 			}
 
 			if(currentNode == targetNode) {
-				print ("Target found");
+		//		print ("Target found");
 				return ConstructPath(startNode, currentNode, cameFrom);
 			}
-
 
 			foreach(Node node in currentNode.neighbours){
 				float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
@@ -54,6 +57,7 @@ public class AStar : MonoBehaviour{
 						if(!rTable.Occupied (state)) {
 							costSoFar[node] = newCost;
 							float priority = newCost + GridHeuristic (targetNode, node);
+							//float priority = newCost + Heuristic (targetNode.worldPosition, node.worldPosition);
 							frontier.Enqueue (node, priority);
 							cameFrom[node] = currentNode;
 						}
@@ -61,13 +65,14 @@ public class AStar : MonoBehaviour{
 				}
 			}
 		}
-		
+
 		return new List<Node> ();
 	}
 
 	public List<Node> AStarSearch(Node startNode, Node targetNode) {
-		if (startNode == targetNode)
+		if (startNode == targetNode) {
 			return new List<Node>();
+		}
 		
 		PriorityQueue<Node, float> frontier = new PriorityQueue<Node, float> ();
 		Dictionary<Node, Node> cameFrom = new Dictionary<Node, Node> ();
@@ -98,7 +103,6 @@ public class AStar : MonoBehaviour{
 				}
 			}
 		}
-
 		return new List<Node> ();
 	}
 
@@ -123,6 +127,9 @@ public class AStar : MonoBehaviour{
 	}
 
 	public float GetCost(Node from, Node to) {
+		if (from == to)
+			return 0;
+
 		float straightCost = 10f;
 		float diagonalCost = 14f;
 
@@ -135,7 +142,8 @@ public class AStar : MonoBehaviour{
 		if (from.gridPosX - 1 == to.gridPosX && from.gridPosY == to.gridPosY) // left
 			return straightCost;
 
+		print ("RETURNING DIAGONAL COST FOR: " + from.gridPosX + ", " + from.gridPosY + "->" +
+		       to.gridPosX + ", " + to.gridPosY);
 		return diagonalCost;
-
 	}
 }

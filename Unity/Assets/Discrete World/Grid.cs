@@ -33,14 +33,14 @@ public class Grid : MonoBehaviour {
 		gridSizeX = Mathf.RoundToInt (gridWorldSize.x / nodeDiameter);
 		gridSizeY = Mathf.RoundToInt (gridWorldSize.y / nodeDiameter);
 		CreateGrid ();
-		
+
+		for(int i = 0; i < gridSizeX; i++) {
+			for(int j = 0; j < gridSizeY; j++) {
+				if(neighbourhood == 4)
+					FillNeighbourhood4 (grid[i, j]);
+			}
+		}
 		foreach (Node node in grid) {
-			if(neighbourhood == 4)
-				FillNeighbourhood4 (node);
-			if(neighbourhood == 8)
-				FillNeighbourhood8 (node);
-			if(neighbourhood == 12)
-				FillNeighbourhood12 (node);
 		}
 	}
 
@@ -48,13 +48,21 @@ public class Grid : MonoBehaviour {
 		return grid [gridPosX, gridPosY];
 	}
 
-	private bool validIndex(int x, int y) {
+	public bool validIndex(int x, int y) {
+		//TODO HÄR ÄR JAG
+		if (x < 0 || x > 19)
+			return false;
+		if (y < 0 || y > 19)
+			return false;
+		return true;
+
+		/*
 		if (0 <= x && x <= gridSizeX) {
 			if(0 <= y && y <= gridSizeY) {
 				return true;
 			}
 		}
-		return false;
+		return false;*/
 	}
 
 	void CreateGrid() {
@@ -107,13 +115,16 @@ public class Grid : MonoBehaviour {
 		Gizmos.DrawWireCube (transform.position, new Vector3(gridWorldSize.x, 1, gridWorldSize.y));
 
 		// Checks if createGrid workes
+
+
 		if (grid != null) {
 			Node playerNode = NodeFromWorldPoint(player.position);
 			foreach (Node n in grid) {
 				Gizmos.color = (n.walkable) ? Color.white : Color.red;
-				Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
+			//	Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
 			}
 		}
+
 
 	}
 
@@ -145,6 +156,29 @@ public class Grid : MonoBehaviour {
 	}
 
 	public void FillNeighbourhood4(Node node) {
+		int x = node.gridPosX;
+		int y = node.gridPosY;
+
+		if (validIndex (x + 1, y) && grid [x + 1, y].walkable) {
+		//	print ("right " + (x + 1) + ", " + (y) + " | " + grid[x+1, y].gridPosX + ", " + grid[x+1, y].gridPosY);
+			node.neighbours.Add (grid [x + 1, y]);
+		}
+
+		if (validIndex (x - 1, y) && grid [x - 1, y].walkable) {
+		//	print ("left");
+			node.neighbours.Add (grid [x - 1, y]);
+		}
+
+		if (validIndex (x, y + 1) && grid [x, y + 1].walkable) {
+		//	print ("down");
+			node.neighbours.Add (grid [x, y + 1]);
+		}
+
+		if (validIndex (x, y - 1) && grid [x, y - 1].walkable) {
+		//	print ("up " + x + ", " + (y - 1) + " | " + grid[x, y - 1].gridPosX + ", " + grid[x, y - 1].gridPosY);
+			node.neighbours.Add (grid [x, y - 1]);
+		}
+		/*
 		int neighX = node.gridPosX;
 		int neighY = node.gridPosY + 1;
 		if(validIndex (neighX, neighY))
@@ -168,7 +202,7 @@ public class Grid : MonoBehaviour {
 		if(validIndex (neighX, neighY))
 			grid[node.gridPosX, node.gridPosY].neighbours.Add (NodeFromWorldPoint(node.worldPosition + 
 			                                                                      Vector3.left));
-
+		*/
 	}
 
 	public void FillNeighbourhood8(Node node) {

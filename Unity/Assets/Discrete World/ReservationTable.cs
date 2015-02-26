@@ -15,7 +15,7 @@ public struct State {
 }
 
 public class ReservationTable {
-	Dictionary<State, int> rTable;
+	public Dictionary<State, int> rTable;
 
 	public ReservationTable() {
 		rTable = new Dictionary<State, int> ();
