@@ -25,7 +25,8 @@ public class Grid : MonoBehaviour {
 		rTable = new ReservationTable ();
 
 		MapLoader mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
-		mapData = mapLoader.LoadMap ("A", "startPos", "endPos");
+		//mapData = mapLoader.LoadMap ("A", "startPos", "endPos");
+		mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
 
 		nodeDiameter = mapData.nodeRadius * 2;
 		gridWorldSize = mapData.gridWorldSize;
@@ -101,7 +102,8 @@ public class Grid : MonoBehaviour {
 		if (mapLoader == null) {
 
 			mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
-			mapData = mapLoader.LoadMap ("A", "endPos", "startPos");
+			//mapData = mapLoader.LoadMap ("A", "endPos", "startPos");
+			mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
 			
 			nodeDiameter = mapData.nodeRadius * 2;
 			gridWorldSize = mapData.gridWorldSize;
@@ -121,7 +123,7 @@ public class Grid : MonoBehaviour {
 			Node playerNode = NodeFromWorldPoint(player.position);
 			foreach (Node n in grid) {
 				Gizmos.color = (n.walkable) ? Color.white : Color.red;
-			//	Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
+				Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
 			}
 		}
 
@@ -178,6 +180,7 @@ public class Grid : MonoBehaviour {
 		//	print ("up " + x + ", " + (y - 1) + " | " + grid[x, y - 1].gridPosX + ", " + grid[x, y - 1].gridPosY);
 			node.neighbours.Add (grid [x, y - 1]);
 		}
+
 		/*
 		int neighX = node.gridPosX;
 		int neighY = node.gridPosY + 1;

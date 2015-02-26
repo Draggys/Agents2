@@ -14,7 +14,7 @@ public struct PathInfo {
 }
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 8;
+	int d = 4;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -42,6 +42,8 @@ public class AStar : MonoBehaviour{
 		frontier.Enqueue(startNode, 0f);
 		cameFrom [startNode] = null;
 		costSoFar [startNode] = 0;
+
+		Dictionary<Node, float> G = new Dictionary<Node, float> ();
 		
 		Node currentNode;
 		while (frontier.Count() != 0) {
@@ -157,8 +159,9 @@ public class AStar : MonoBehaviour{
 	}
 
 	public float GetCost(Node from, Node to) {
-		if (from == to)
+		if (from == to) {	
 			return 0;
+		}
 
 		float straightCost = 10f;
 		float diagonalCost = 14f;
@@ -174,6 +177,7 @@ public class AStar : MonoBehaviour{
 
 		print ("RETURNING DIAGONAL COST FOR: " + from.gridPosX + ", " + from.gridPosY + "->" +
 		       to.gridPosX + ", " + to.gridPosY);
+
 		return diagonalCost;
 	}
 }

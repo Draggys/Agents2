@@ -35,18 +35,21 @@ public class DiscreteMovement : MonoBehaviour {
 		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
 		
 		List<Node> w1 = new List<Node> ();
-		w1.Add (endNode);
-		w1.Add (startNode);
-		w1.Add (grid.grid [19, 1]);
-		agents.Add (new Agent("Red", startNode, w1));
+		w1.Add (grid.grid [19, 9]);
+		w1.Add (grid.grid [0, 9]);
+		agents.Add (new Agent("Red", grid.grid[0, 9], w1));
 		agents [0].agent.renderer.material.color = Color.red;
-		
-		agents.Add (new Agent ("Magenta", grid.grid[0, 10], w1));
+
+		List<Node> w2 = new List<Node> ();
+		w2.Add (grid.grid [0, 9]);
+		w2.Add (grid.grid [19, 9]);
+		agents.Add (new Agent ("Magenta", grid.grid[19, 9], w2));
 		agents [1].agent.renderer.material.color = Color.magenta;
 
+		/*
 		agents.Add (new Agent ("Yellow", endNode, w1));
 		agents [1].agent.renderer.material.color = Color.yellow;
-		
+		*/
 		//	Node node = grid.grid [19, 0];
 		//	debug = node.neighbours;
 		
@@ -120,9 +123,9 @@ public class DiscreteMovement : MonoBehaviour {
 			}
 			
 			int i = 1;
-			Node pos = pathInfo.path[pathInfo.path.Count - 1];
+			//Node pos = pathInfo.path[pathInfo.path.Count - 1];
+			Node pos = null;
 			foreach (Node node in pathInfo.path) {
-
 				// Extra collision rule since request order can cause trouble
 				bool walkable = true;
 				foreach(Agent a in agents) {
@@ -130,10 +133,10 @@ public class DiscreteMovement : MonoBehaviour {
 						walkable = false;
 					}
 				}
-				//if(walkable){
+			//	if(walkable){
 					agent.agent.transform.position = node.worldPosition;
 					pos = node;
-				//}
+			//	}
 				
 				if (pastNode != null) {
 					State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
