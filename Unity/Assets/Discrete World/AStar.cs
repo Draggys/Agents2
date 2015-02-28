@@ -6,12 +6,15 @@ using System;
 public struct PathInfo {
 	public List<Node> path;
 	public bool reachedDestination;
+	public string status;
 
-	public PathInfo(List<Node> path, bool reachedDestination) {
+	public PathInfo(List<Node> path, bool reachedDestination, String status) {
 		this.path = path;
 		this.reachedDestination = reachedDestination;
+		this.status = status;
 	}
 }
+
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
 	int d = 8;
@@ -25,14 +28,31 @@ public class AStar : MonoBehaviour{
 		return directions [dir];
 	}
 
-	public PathInfo STAStar(Node startNode, Node targetNode) {
+	public PathInfo STAStar(Node startNode, Node targetNode, int run = 0) {
 		PathInfo ret;
-		List<Node> path;
+		List<Node> path = new List<Node>();
+
+
 		if (startNode == targetNode) {
-			path = new List<Node> ();
-			while(path.Count != d)
-				path.Add (targetNode);
-			ret = new PathInfo(path, true);
+			bool free = true;
+			State state = new State(startNode.gridPosX, startNode.gridPosY, 1);
+
+			for(int i = 1; i <= d; i++) {
+				state.t = i;
+				if(rTable.Occupied (state)) {
+					free = false;
+					break;
+				}
+			}
+
+			if(free) {	
+				path = new List<Node> ();
+				while(path.Count != d)
+					path.Add (startNode);
+				ret = new PathInfo(path, true, "Stay on place. EndPos: " + path[path.Count-1].gridPosX + ", " +  + path[path.Count-1].gridPosY);
+				return ret;
+			}
+
 		}
 		
 		PriorityQueue<Node, float> frontier = new PriorityQueue<Node, float> ();
@@ -49,46 +69,94 @@ public class AStar : MonoBehaviour{
 		while (frontier.Count() != 0) {
 			currentNode = frontier.Dequeue ();
 
-			path = ConstructPath(startNode, currentNode, cameFrom);
-            
+			G[currentNode] = TrueDistance (targetNode, currentNode);
+
+            path = ConstructPath(startNode, currentNode, cameFrom);
             if(path.Count == d){
-				ret = new PathInfo(path, false);
+				ret = new PathInfo(path, false, "Depth reached. endPos: "  + path[path.Count-1].gridPosX + ", " +  + path[path.Count-1].gridPosY);
 				return ret;
 			}
-
-			if(currentNode == targetNode) {
-				while(path.Count != d) 
-					path.Add (targetNode);
-				ret = new PathInfo(path, true);
-				return ret;
-			}
-
-			foreach(Node node in currentNode.neighbours){
+            
+            foreach(Node node in currentNode.neighbours){
 				float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
 
 				State state = new State(node.gridPosX, node.gridPosY, path.Count + 1);
 
+				if(currentNode == startNode) {
+					State initState = state;
+					state.t = -1;
+					if(rTable.Occupied(initState))
+						continue;
+				}
+
 				if (!costSoFar.ContainsKey (node) || newCost < costSoFar[node]) {
 					if(node.walkable) {
 						if(!rTable.Occupied (state)) {
-							costSoFar[node] = newCost;
-							//float priority = newCost + GridHeuristic (targetNode, node);
-							//float priority = newCost + Heuristic (targetNode.worldPosition, node.worldPosition);
-							float priority = newCost + TrueDistance (targetNode, node);
-							frontier.Enqueue (node, priority);
-							cameFrom[node] = currentNode;
+							if(startNode != targetNode) {
+								costSoFar[node] = newCost;
+								float td = TrueDistance (targetNode, node);
+								float priority = newCost + td;
+								
+								G[node] = td;
+								
+								if(G[currentNode] > G[node]){
+									frontier.Enqueue (node, priority);
+									cameFrom[node] = currentNode;
+								}
+							}
+							else if(startNode == targetNode) {
+								costSoFar[node] = newCost;
+								float priority = newCost + GridHeuristic(targetNode, node);
+								frontier.Enqueue (node, priority);
+								cameFrom[node] = currentNode;
+							}
 						}
 					}
 				}
 			}
 		}
 
-		path = new List<Node> ();
-		while (path.Count != d)
-			path.Add (startNode);
-		ret = new PathInfo (path, false);
-		return ret;
+
+		if (path.Count != 0) {
+			Node node = path [path.Count - 1];
+			State state = new State(node.gridPosX, node.gridPosY, path.Count);
+			while (path.Count != d) {
+				state.t = path.Count;
+				if(!rTable.Occupied (state))
+					path.Add (node);
+				else
+					break;
+			}
+
+			if(path.Count == d)
+				return new PathInfo (path, false, "No path could be found, CAN move, endPos: "  + path[path.Count-1].gridPosX + ", " +  + path[path.Count-1].gridPosY);
+		} 
+		else {
+			State state = new State(startNode.gridPosX, startNode.gridPosY, path.Count);
+			while(path.Count != d) {
+				state.t = path.Count;
+				if(!rTable.Occupied (state))
+					path.Add (startNode);
+				else
+					break;
+			}
+
+			if(path.Count == d)
+				return new PathInfo (path, false, "No path could be found, can't move, endPos: " + path[path.Count-1].gridPosX + ", " +  + path[path.Count-1].gridPosY);
+		}
+
+		if (run == 2) {
+			while(path.Count != d) {
+				path.Add (startNode);
+			}
+			
+			return new PathInfo (path, false, "No path could be found, can't move, endPos: " + path[path.Count-1].gridPosX + ", " +  + path[path.Count-1].gridPosY);
+		}
+
+		return STAStar (startNode, startNode, 2);
 	}
+
+
 
 	public List<Node> AStarSearch(Node startNode, Node targetNode) {
 		if (startNode == targetNode) {
@@ -159,10 +227,6 @@ public class AStar : MonoBehaviour{
 	}
 
 	public float GetCost(Node from, Node to) {
-		if (from == to) {	
-			return 0;
-		}
-
 		float straightCost = 10f;
 		float diagonalCost = 14f;
 

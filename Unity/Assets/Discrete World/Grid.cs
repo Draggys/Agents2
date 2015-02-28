@@ -50,7 +50,6 @@ public class Grid : MonoBehaviour {
 	}
 
 	public bool validIndex(int x, int y) {
-		//TODO HÄR ÄR JAG
 		if (x < 0 || x > 19)
 			return false;
 		if (y < 0 || y > 19)
@@ -123,7 +122,7 @@ public class Grid : MonoBehaviour {
 			Node playerNode = NodeFromWorldPoint(player.position);
 			foreach (Node n in grid) {
 				Gizmos.color = (n.walkable) ? Color.white : Color.red;
-		//		Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
+				Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
 			}
 		}
 

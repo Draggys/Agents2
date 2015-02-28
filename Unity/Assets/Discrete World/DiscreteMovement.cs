@@ -4,23 +4,27 @@ using System.Collections.Generic;
 using System;
 
 public class Agent {
-	public Node start;
-	//public Node end;
+	public Node pos;
 	public List<Node> waypoints;
+	public int wp;
 	public GameObject agent;
 	public string id;
 	
 	public Agent(string id, Node start, List<Node> waypoints) {
-		this.start = start;
 		this.waypoints = waypoints;
 		this.id = id;
 		agent = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 		agent.transform.position = start.worldPosition;
+		pos = start;
+		wp = 0;
 	}
 }
 
 public class DiscreteMovement : MonoBehaviour {
-	
+
+	int ready;
+	int readyS = 0;
+
 	List<Agent> agents = new List<Agent> ();
 	AStar astar;
 	Grid grid;
@@ -33,12 +37,14 @@ public class DiscreteMovement : MonoBehaviour {
 		astar = new AStar (grid.rTable);
 		Node startNode = grid.grid [Convert.ToInt32(grid.mapData.start.x), Convert.ToInt32 (grid.mapData.start.y)];
 		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
-		
+
+
 		List<Node> w1 = new List<Node> ();
 		w1.Add (grid.grid [19, 9]);
 		w1.Add (grid.grid [0, 9]);
 		agents.Add (new Agent("Red", grid.grid[0, 9], w1));
-		agents [0].agent.renderer.material.color = Color.red;
+		//agents.Add (new Agent("Red", grid.grid[8, 9], w1));
+        agents [0].agent.renderer.material.color = Color.red;
 
 		List<Node> w2 = new List<Node> ();
 		w2.Add (grid.grid [0, 9]);
@@ -52,11 +58,39 @@ public class DiscreteMovement : MonoBehaviour {
 		agents.Add (new Agent ("Yellow", grid.grid[1, 9], w3));
 		agents [2].agent.renderer.material.color = Color.yellow;
 
-		//	Node node = grid.grid [19, 0];
-		//	debug = node.neighbours;
-		
-		StartAllAgents ();
+		List<Node> w4 = new List<Node> ();
+		w4.Add (grid.grid [9, 9]);
+		agents.Add (new Agent ("Black", grid.grid[9, 9], w4));
+		agents [3].agent.renderer.material.color = Color.black;
+
+
+		ready = agents.Count;
 	}
+
+	void Update() {
+		if (ready == agents.Count) {
+			State state;
+
+			ready = 0;
+			int index = readyS;	
+			for(int i = 0; i < agents.Count; i++) {
+				StartCoroutine (Move (agents[index]));
+				index = (index + 1) % agents.Count;
+			}
+
+			readyS = (readyS + 1) % agents.Count;
+        }
+
+		foreach (Agent agent in agents) {
+			foreach(Agent agent2 in agents) {
+				if(agent != agent2) {
+					if(agent.pos == agent2.pos) {
+						print ("!HEAD TO HEAD COLLISION! between: \n" + agent.id + " and " + agent2.id);
+					}
+				}
+			}
+		}
+    }
 	
 	public void StartAllAgents() {
 		bool moving = true;
@@ -67,109 +101,89 @@ public class DiscreteMovement : MonoBehaviour {
 	
 	public PathInfo RequestPath(Node startNode, Node endNode) {
 		PathInfo pathInfo = astar.STAStar (startNode, endNode);
-		
-		/*
-		int i = 1;
-		foreach (Node node in path) {
-			State state = new State(node.gridPosX, node.gridPosY, i++);
-			grid.rTable.Add (state, 1);
-		}
-		*/
-		
 		int i = 1;
 		for(int j = 0; j < pathInfo.path.Count; j++) {
-			if(j != pathInfo.path.Count - 1) {
+		//	if(j != pathInfo.path.Count - 1) {
 				State cState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i);
-				State nState = new State(pathInfo.path[j+1].gridPosX, pathInfo.path[j+1].gridPosY, i); 
+				State nState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i+1); 
 				grid.rTable.Add (cState, 1);
 				grid.rTable.Add (nState, 2);
-			}
+			//}
 			i++;
 		}
 		
 		return pathInfo;
 	}
-	
+
 	IEnumerator Move(Agent agent) {
-		Node start = agent.start;
-		int r = 0;
-		Node end = agent.waypoints[r];
+		State initState = new State(agent.pos.gridPosX, agent.pos.gridPosY, -1);
+		grid.rTable.Add (initState, 1);
+
+		Node start = agent.pos;
+		Node end = agent.waypoints[agent.wp];
 		PathInfo pathInfo;
-		while (true) {
-			Node pastNode = null;
-			pathInfo = RequestPath (start, end);
-			print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
-			       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
-			       " and success: " + pathInfo.reachedDestination);
-	
-			if(pathInfo.reachedDestination) {
-				r++;
-				if(r < agent.waypoints.Count) {
-					end = agent.waypoints[r];
-				}
+		Node pastNode = null;
 
-				// Test remove when reached final goal
-				/*
-				if(r == agent.waypoints.Count + 1 && agent.id == "Red") {
-					// remove when reached final destination
-					print (agent.id + " yield break (" + r + "/" + agent.waypoints.Count + ")");
-					int t = 1;
-					foreach (Node node in pathInfo.path) {
-						State state = new State(node.gridPosX, node.gridPosY, t++);
-						grid.rTable.Free (state);
-					}
-					yield break;
-				}
-				*/
+		pathInfo = RequestPath (start, end);
 
-			}
-			
-			int i = 1;
-			//Node pos = pathInfo.path[pathInfo.path.Count - 1];
-			Node pos = null;
-			foreach (Node node in pathInfo.path) {
-				// Extra collision rule since request order can cause trouble
+		/*
+		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
+		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
+		       " and success: " + pathInfo.reachedDestination + " status: " + pathInfo.status);
+*/
+
+		if(pathInfo.reachedDestination) {
+			if(agent.wp != agent.waypoints.Count - 1)
+				agent.wp = agent.wp + 1;
+		}
+		
+		int i = 1;
+		//Node pos = pathInfo.path[pathInfo.path.Count - 1];
+		Node pos = null;
+		bool pause = false;
+		foreach (Node node in pathInfo.path) {
+			if(!pause) {
 				bool walkable = true;
 				foreach(Agent a in agents) {
-					if(a.agent.transform.position == node.worldPosition) {
+					if(a.pos == node) {
 						walkable = false;
+						break;
 					}
 				}
-			//	if(walkable){
+				if(walkable) {
 					agent.agent.transform.position = node.worldPosition;
-					pos = node;
-			//	}
-				
-				if (pastNode != null) {
-					State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
-					grid.rTable.Free (state);
-					state.t = state.t - 1;
-					grid.rTable.Free (state);
-					
-					//print (agent.id + " Freeing: " + state.x + ", " + state.y + ", " + state.t);
+					agent.pos = node;
 				}
-				pastNode = node;
-				/*
-                print(agent.id + ": [" + node.gridPosX + ", " + node.gridPosY + ", " + i + "] "
-                      + grid.rTable.Occupied (new State(node.gridPosX, node.gridPosY, i)));
-                */
-
-				//yield return null;
-				yield return new WaitForSeconds (0.2f);
+				else {
+					pause = true;
+				}
 			}
-			
-			start = pathInfo.path[pathInfo.path.Count - 1];
-			
-			if(pastNode != null) {
+
+			if (pastNode != null) {
 				State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
 				grid.rTable.Free (state);
-				state.t = state.t - 1;
+				state.t = state.t + 1;
 				grid.rTable.Free (state);
-			}
-			
-		}
-	}
-	
+				
+				//print (agent.id + " Freeing: " + state.x + ", " + state.y + ", " + state.t);
+            }
+            pastNode = node;
+            //yield return null;
+            yield return new WaitForSeconds (0.2f);
+        }
+        
+        if(pastNode != null) {
+            State state = new State(pastNode.gridPosX, pastNode.gridPosY, i++);
+            grid.rTable.Free (state);
+            state.t = state.t + 1;
+            grid.rTable.Free (state);
+        }
+        
+        ready++;
+		grid.rTable.Free (initState);
+    }
+
+
 	void OnDrawGizmos() {
 
 		Gizmos.color = Color.cyan;
