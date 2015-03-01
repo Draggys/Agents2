@@ -7,6 +7,7 @@ public class Agent {
 	public Node pos;
 	public List<Node> waypoints;
 	public int wp;
+	public bool wpReached;
 	public GameObject agent;
 	public string id;
 	
@@ -17,6 +18,7 @@ public class Agent {
 		agent.transform.position = start.worldPosition;
 		pos = start;
 		wp = 0;
+		wpReached = false;
 	}
 }
 
@@ -45,7 +47,7 @@ public class DiscreteMovement : MonoBehaviour {
 		agents.Add (new Agent("Red", grid.grid[0, 9], w1));
 		//agents.Add (new Agent("Red", grid.grid[8, 9], w1));
         agents [0].agent.renderer.material.color = Color.red;
-
+	
 		List<Node> w2 = new List<Node> ();
 		w2.Add (grid.grid [0, 9]);
 		w2.Add (grid.grid [19, 9]);
@@ -66,15 +68,16 @@ public class DiscreteMovement : MonoBehaviour {
 
 		ready = agents.Count;
 	}
-
+	
 	void Update() {
 		if (ready == agents.Count) {
+
 			State state;
 
 			ready = 0;
 			int index = readyS;	
 			for(int i = 0; i < agents.Count; i++) {
-				StartCoroutine (Move (agents[index]));
+				StartCoroutine (Move (agents[index], GreedyNext (agents[index])));
 				index = (index + 1) % agents.Count;
 			}
 
@@ -91,36 +94,28 @@ public class DiscreteMovement : MonoBehaviour {
 			}
 		}
     }
-	
-	public void StartAllAgents() {
-		bool moving = true;
-		foreach (Agent agent in agents) {
-			StartCoroutine (Move (agent));
-		}
-	}
+
 	
 	public PathInfo RequestPath(Node startNode, Node endNode) {
 		PathInfo pathInfo = astar.STAStar (startNode, endNode);
 		int i = 1;
 		for(int j = 0; j < pathInfo.path.Count; j++) {
-		//	if(j != pathInfo.path.Count - 1) {
-				State cState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i);
-				State nState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i+1); 
-				grid.rTable.Add (cState, 1);
-				grid.rTable.Add (nState, 2);
-			//}
+			State cState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i);
+			State nState = new State(pathInfo.path[j].gridPosX, pathInfo.path[j].gridPosY, i+1); 
+			grid.rTable.Add (cState, 1);
+			grid.rTable.Add (nState, 2);
 			i++;
 		}
 		
 		return pathInfo;
 	}
 
-	IEnumerator Move(Agent agent) {
+	IEnumerator Move(Agent agent, Node end) {
 		State initState = new State(agent.pos.gridPosX, agent.pos.gridPosY, -1);
 		grid.rTable.Add (initState, 1);
 
 		Node start = agent.pos;
-		Node end = agent.waypoints[agent.wp];
+		//Node end = agent.waypoints[agent.wp];
 		PathInfo pathInfo;
 		Node pastNode = null;
 
@@ -133,8 +128,11 @@ public class DiscreteMovement : MonoBehaviour {
 */
 
 		if(pathInfo.reachedDestination) {
-			if(agent.wp != agent.waypoints.Count - 1)
-				agent.wp = agent.wp + 1;
+			if(agent.waypoints.Count > 1) {
+				agent.waypoints.RemoveAt (agent.wp);
+			}
+			print ("wpReached = true");
+			agent.wpReached = true;
 		}
 		
 		int i = 1;
@@ -182,6 +180,26 @@ public class DiscreteMovement : MonoBehaviour {
         ready++;
 		grid.rTable.Free (initState);
     }
+
+	Node GreedyNext(Agent agent) {
+		if (agent.wpReached) {
+			agent.wpReached = false;
+			if (agent.waypoints.Count > 1) {
+				float bestCost = -1;
+				int j = -1;
+				for (int i = agent.wp; i < agent.waypoints.Count; i++) {
+					float cost = astar.TrueDistance (agent.waypoints [i], agent.pos);
+					if (cost == -1 || cost < bestCost) {
+						bestCost = cost;
+						j = i;
+					}
+				}
+				agent.wp = j;
+				return agent.waypoints [j];
+			}
+		}
+		return agent.waypoints [agent.wp];
+	}
 
 
 	void OnDrawGizmos() {

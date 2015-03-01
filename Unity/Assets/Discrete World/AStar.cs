@@ -17,7 +17,7 @@ public struct PathInfo {
 
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 8;
+	int d = 6;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
@@ -82,12 +82,15 @@ public class AStar : MonoBehaviour{
 
 				State state = new State(node.gridPosX, node.gridPosY, path.Count + 1);
 
+
 				if(currentNode == startNode) {
 					State initState = state;
-					state.t = -1;
-					if(rTable.Occupied(initState))
+					State thisState = new State(currentNode.gridPosX, currentNode.gridPosY, 1);
+					initState.t = -1;
+					if(rTable.Occupied(initState) && rTable.Occupied (thisState))
 						continue;
 				}
+
 
 				if (!costSoFar.ContainsKey (node) || newCost < costSoFar[node]) {
 					if(node.walkable) {
@@ -203,7 +206,7 @@ public class AStar : MonoBehaviour{
 		return Mathf.Abs (A.gridPosX - B.gridPosX) + Mathf.Abs (A.gridPosY - B.gridPosY);
 	}
 
-	float TrueDistance(Node A, Node B) {
+	public float TrueDistance(Node A, Node B) {
 		List<Node> path = AStarSearch (A, B);
 		float cost = 0;
 		Node pastNode = A;
