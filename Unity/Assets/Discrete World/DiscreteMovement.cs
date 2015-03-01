@@ -131,7 +131,6 @@ public class DiscreteMovement : MonoBehaviour {
 			if(agent.waypoints.Count > 1) {
 				agent.waypoints.RemoveAt (agent.wp);
 			}
-			print ("wpReached = true");
 			agent.wpReached = true;
 		}
 		
@@ -187,7 +186,7 @@ public class DiscreteMovement : MonoBehaviour {
 			if (agent.waypoints.Count > 1) {
 				float bestCost = -1;
 				int j = -1;
-				for (int i = agent.wp; i < agent.waypoints.Count; i++) {
+				for (int i = 0; i < agent.waypoints.Count; i++) {
 					float cost = astar.TrueDistance (agent.waypoints [i], agent.pos);
 					if (cost == -1 || cost < bestCost) {
 						bestCost = cost;
