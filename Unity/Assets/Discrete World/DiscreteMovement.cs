@@ -48,11 +48,13 @@ public class DiscreteMovement : MonoBehaviour {
 		//agents.Add (new Agent("Red", grid.grid[8, 9], w1));
         agents [0].agent.renderer.material.color = Color.red;
 	
+
 		List<Node> w2 = new List<Node> ();
 		w2.Add (grid.grid [0, 9]);
 		w2.Add (grid.grid [19, 9]);
 		agents.Add (new Agent ("Magenta", grid.grid[19, 9], w2));
 		agents [1].agent.renderer.material.color = Color.magenta;
+
 
 		List<Node> w3 = new List<Node> ();
 		w3.Add (grid.grid [19, 8]);
@@ -68,7 +70,8 @@ public class DiscreteMovement : MonoBehaviour {
 
 		ready = agents.Count;
 	}
-	
+
+	int priority = 0;
 	void Update() {
 		if (ready == agents.Count) {
 
@@ -81,7 +84,10 @@ public class DiscreteMovement : MonoBehaviour {
 				index = (index + 1) % agents.Count;
 			}
 
-			readyS = (readyS + 1) % agents.Count;
+			if(priority++ == 3 || agents[index].pos == agents[index].waypoints[agents[index].wp]) {
+				readyS = (readyS + 1) % agents.Count;
+				priority = 0;
+			}
         }
 
 		foreach (Agent agent in agents) {
@@ -121,22 +127,14 @@ public class DiscreteMovement : MonoBehaviour {
 
 		pathInfo = RequestPath (start, end);
 
-		/*
+
 		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
 		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
 		       " and success: " + pathInfo.reachedDestination + " status: " + pathInfo.status);
-*/
 
-		if(pathInfo.reachedDestination) {
-			if(agent.waypoints.Count > 1) {
-				agent.waypoints.RemoveAt (agent.wp);
-			}
-			agent.wpReached = true;
-		}
-		
+			
 		int i = 1;
 		//Node pos = pathInfo.path[pathInfo.path.Count - 1];
-		Node pos = null;
 		bool pause = false;
 		foreach (Node node in pathInfo.path) {
 			if(!pause) {
@@ -175,6 +173,14 @@ public class DiscreteMovement : MonoBehaviour {
             state.t = state.t + 1;
             grid.rTable.Free (state);
         }
+
+		if (agent.pos == end) {
+			if (agent.waypoints.Count > 1)
+				agent.waypoints.RemoveAt (agent.wp);
+			print ("End dest");
+		}
+        //agent.wpReached = false;
+        
         
         ready++;
 		grid.rTable.Free (initState);

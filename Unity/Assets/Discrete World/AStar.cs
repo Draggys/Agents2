@@ -5,7 +5,7 @@ using System;
 
 public struct PathInfo {
 	public List<Node> path;
-	public bool reachedDestination;
+	public bool reachedDestination;  // This is now unreliable due to recursive call of STA*
 	public string status;
 
 	public PathInfo(List<Node> path, bool reachedDestination, String status) {
