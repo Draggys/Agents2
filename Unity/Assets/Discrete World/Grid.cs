@@ -26,13 +26,20 @@ public class Grid : MonoBehaviour {
 
 		//MapLoader mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 		//mapData = mapLoader.LoadMap ("A", "startPos", "endPos");
-		MapLoader mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
-		mapData = mapLoader.LoadMap ("discObst1/discObst1", 
-		                             "discObst1/discObst1StartPos",
-		                             "discObst1/discObst1GoalPos",
-		                             "discObst1/discObst1CustomerPos");
-
-		nodeDiameter = mapData.nodeRadius * 2;
+		/*
+			mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
+			mapData = mapLoader.LoadMap ("discObst1/discObst1", 
+			                             "discObst1/discObst1StartPos",
+			                             "discObst1/discObst1GoalPos",
+			                             "discObst1/discObst1CustomerPos");
+		*/
+		mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
+		mapData = mapLoader.LoadMap ("discObst2/discObst2", 
+		                             "discObst2/discObst2StartPos",
+		                             "discObst2/discObst2GoalPos",
+		                             "discObst2/discObst2CustomerPos");
+        
+        nodeDiameter = mapData.nodeRadius * 2;
 		gridWorldSize = mapData.gridWorldSize;
 		// #nodes that can fit into the x-space
 		gridSizeX = Mathf.RoundToInt (gridWorldSize.x / nodeDiameter);
@@ -107,12 +114,19 @@ public class Grid : MonoBehaviour {
 			//mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 			//mapData = mapLoader.LoadMap ("A", "endPos", "startPos");
 			//mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
+			/*
 			mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
 			mapData = mapLoader.LoadMap ("discObst1/discObst1", 
 			                             "discObst1/discObst1StartPos",
 			                             "discObst1/discObst1GoalPos",
 			                             "discObst1/discObst1CustomerPos");
-			
+			*/
+			mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
+			mapData = mapLoader.LoadMap ("discObst2/discObst2", 
+			                             "discObst2/discObst2StartPos",
+			                             "discObst2/discObst2GoalPos",
+			                             "discObst2/discObst2CustomerPos");
+
 			nodeDiameter = mapData.nodeRadius * 2;
 			gridWorldSize = mapData.gridWorldSize;
 			// #nodes that can fit into the x-space
@@ -131,6 +145,7 @@ public class Grid : MonoBehaviour {
 			Node playerNode = NodeFromWorldPoint(player.position);
 			foreach (Node n in grid) {
 				Gizmos.color = (n.walkable) ? Color.white : Color.red;
+				if(Gizmos.color == Color.red)
 				Gizmos.DrawCube (n.worldPosition, Vector3.one * (nodeDiameter - .1f));
 			}
 		}
