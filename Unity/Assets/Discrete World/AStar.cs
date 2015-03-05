@@ -17,7 +17,7 @@ public struct PathInfo {
 
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 4;
+	int d = 6;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;

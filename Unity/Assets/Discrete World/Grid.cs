@@ -21,23 +21,27 @@ public class Grid : MonoBehaviour {
 	public int neighbourhood;
 	public ReservationTable rTable;
 
+	public int map;
+
 	void Awake () {
 		rTable = new ReservationTable ();
 
 		//MapLoader mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 		//mapData = mapLoader.LoadMap ("A", "startPos", "endPos");
-		/*
-			mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
+		if (map == 1) {
+			mapLoader = new MapLoader (new Vector2 (11, 11), 0.5f);
 			mapData = mapLoader.LoadMap ("discObst1/discObst1", 
 			                             "discObst1/discObst1StartPos",
 			                             "discObst1/discObst1GoalPos",
 			                             "discObst1/discObst1CustomerPos");
-		*/
-		mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
-		mapData = mapLoader.LoadMap ("discObst2/discObst2", 
+		}
+		if (map == 2) {
+			mapLoader = new MapLoader (new Vector2 (20, 20), 0.5f);
+			mapData = mapLoader.LoadMap ("discObst2/discObst2", 
 		                             "discObst2/discObst2StartPos",
 		                             "discObst2/discObst2GoalPos",
 		                             "discObst2/discObst2CustomerPos");
+		}
         
         nodeDiameter = mapData.nodeRadius * 2;
 		gridWorldSize = mapData.gridWorldSize;
@@ -114,18 +118,21 @@ public class Grid : MonoBehaviour {
 			//mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 			//mapData = mapLoader.LoadMap ("A", "endPos", "startPos");
 			//mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
-			/*
+
+			if(map == 1) {
 			mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
 			mapData = mapLoader.LoadMap ("discObst1/discObst1", 
 			                             "discObst1/discObst1StartPos",
 			                             "discObst1/discObst1GoalPos",
 			                             "discObst1/discObst1CustomerPos");
-			*/
+			}
+			if(map == 2) {
 			mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 			mapData = mapLoader.LoadMap ("discObst2/discObst2", 
 			                             "discObst2/discObst2StartPos",
 			                             "discObst2/discObst2GoalPos",
 			                             "discObst2/discObst2CustomerPos");
+			}
 
 			nodeDiameter = mapData.nodeRadius * 2;
 			gridWorldSize = mapData.gridWorldSize;
