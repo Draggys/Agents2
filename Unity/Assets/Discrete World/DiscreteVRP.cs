@@ -71,7 +71,7 @@ public class DiscreteVRP : MonoBehaviour {
 		}
 		debug = new List<Node> (customers);
 
-		vrp = new VRPD (customers);
+		vrp = new VRPD (customers, agents.Count);
 		ready = agents.Count;
 		/*
 		List<Node> customers = new List<Node> ();

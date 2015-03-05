@@ -5,9 +5,11 @@ using System.Collections.Generic;
 public class VRPD {
     
     public List<Node> customers;
+	int bound;
 
-    public VRPD(List<Node> customers) {
+    public VRPD(List<Node> customers, int agents) {
         this.customers = customers;
+		this.bound = agents * 2;
     }
 
 	public Node NextCustomer(Agent agent, Node endPos) {
@@ -58,7 +60,9 @@ public class VRPD {
     private float Dist(Node customer, Agent agent, Node endPos) {
 		float first = Mathf.Abs (customer.gridPosX - agent.pos.gridPosX) + Mathf.Abs (customer.gridPosY - agent.pos.gridPosY);
 		float second = Mathf.Abs (endPos.gridPosX - customer.gridPosX) + Mathf.Abs (endPos.gridPosY - customer.gridPosY);
-		return first + second;
-	//	return first;
+
+		if(customers.Count < bound)
+			return first + second;
+		return first;
 	}
 }
