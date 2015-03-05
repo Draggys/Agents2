@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using System;
 
 public class MapLoader{
@@ -55,16 +56,41 @@ public class MapLoader{
 		file.Close ();
 
 		// read start and end pos
-		string start = System.IO.File.ReadAllText (startName);
-		string[] startList = start.Split (' ');
-		mapData.start = new Vector2(float.Parse (startList[0]) - 1, float.Parse (startList[1]) - 1);
+		mapData.start = new List<Vector2> ();
+		file = new System.IO.StreamReader (startName);
+		while ((line = file.ReadLine ()) != null) {
+			string[] pos = line.Split(' ');
+			mapData.start.Add (new Vector2(float.Parse (pos[0])-1, float.Parse (pos[1])-1));
+		}
+		file.Close ();
 
-		string end = System.IO.File.ReadAllText (endName);
-		string[] endList = end.Split (' ');
-		mapData.end = new Vector2 (float.Parse (endList [0]) - 1, float.Parse (endList [1]) - 1);
+		mapData.end = new List<Vector2> ();
+		file = new System.IO.StreamReader (endName);
+		while ((line = file.ReadLine ()) != null) {
+			string[] pos = line.Split(' ');
+			mapData.end.Add (new Vector2(float.Parse (pos[0])-1, float.Parse (pos[1])-1));
+		}
+		file.Close ();
 
 		mapData.gridWorldSize = gridWorldSize;
 		mapData.nodeRadius = nodeRadius;
+		return mapData;
+	}
+
+	public MapData LoadMap(string mapName, string startName, string endName, string customers){
+		MapData mapData = LoadMap (mapName, startName, endName);
+
+		mapData.customers = new List<Vector2> ();
+		string customerFile = prefix + customers + postfix;
+		string line;
+		System.IO.StreamReader file = new System.IO.StreamReader (customerFile);
+		while ((line = file.ReadLine ()) != null) {
+			string[] pos = line.Split (' ');
+			Vector2 nodePos = new Vector2(float.Parse (pos[0])-1, float.Parse (pos[1])-1);
+			mapData.customers.Add (nodePos);
+		}
+		file.Close ();
+
 		return mapData;
 	}
 }

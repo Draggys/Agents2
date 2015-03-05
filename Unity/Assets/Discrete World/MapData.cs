@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MapData {
 	public bool[,] walkable;
-	public Vector2 start;
-	public Vector2 end;
+	public List<Vector2> start;
+	public List<Vector2> end;
 	public Vector2 gridWorldSize;
 	public float nodeRadius;
+	public List<Vector2> customers;
 }

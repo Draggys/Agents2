@@ -24,9 +24,13 @@ public class Grid : MonoBehaviour {
 	void Awake () {
 		rTable = new ReservationTable ();
 
-		MapLoader mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
+		//MapLoader mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 		//mapData = mapLoader.LoadMap ("A", "startPos", "endPos");
-		mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
+		MapLoader mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
+		mapData = mapLoader.LoadMap ("discObst1/discObst1", 
+		                             "discObst1/discObst1StartPos",
+		                             "discObst1/discObst1GoalPos",
+		                             "discObst1/discObst1CustomerPos");
 
 		nodeDiameter = mapData.nodeRadius * 2;
 		gridWorldSize = mapData.gridWorldSize;
@@ -50,9 +54,9 @@ public class Grid : MonoBehaviour {
 	}
 
 	public bool validIndex(int x, int y) {
-		if (x < 0 || x > 19)
+		if (x < 0 || x >= mapData.gridWorldSize.x)
 			return false;
-		if (y < 0 || y > 19)
+		if (y < 0 || y >= mapData.gridWorldSize.y)
 			return false;
 		return true;
 
@@ -100,9 +104,14 @@ public class Grid : MonoBehaviour {
 
 		if (mapLoader == null) {
 
-			mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
+			//mapLoader = new MapLoader (new Vector2(20, 20), 0.5f);
 			//mapData = mapLoader.LoadMap ("A", "endPos", "startPos");
-			mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
+			//mapData = mapLoader.LoadMap ("testmap", "endPos", "startPos");
+			mapLoader = new MapLoader (new Vector2(11, 11), 0.5f);
+			mapData = mapLoader.LoadMap ("discObst1/discObst1", 
+			                             "discObst1/discObst1StartPos",
+			                             "discObst1/discObst1GoalPos",
+			                             "discObst1/discObst1CustomerPos");
 			
 			nodeDiameter = mapData.nodeRadius * 2;
 			gridWorldSize = mapData.gridWorldSize;
