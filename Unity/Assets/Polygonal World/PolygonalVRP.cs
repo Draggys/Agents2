@@ -17,7 +17,7 @@ public class PolygonalVRP : MonoBehaviour {
 		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button" , "polygMap1/customerPos");
 		mapData = map.polyData;
-		R = 1;
+		R = 5;
 
 		agents = new List<PolyAgent> ();
 		for(int i = 0; i < mapData.start.Count; i++) {
@@ -33,19 +33,17 @@ public class PolygonalVRP : MonoBehaviour {
 		foreach (PolyAgent agent in agents) {
 			List<Vector3> path = new List<Vector3> ();
 			path.Add (agent.end);
-			agent.model.SetPath (path, agent);
+			agent.model.SetPath (path, agent, mapData.lines);
 			agent.model.StartCoroutineMove();
 		}
+
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
 
 	void OnDrawGizmos() {
 		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button" , "polygMap1/customerPos");
+
 		if (map.polyData.nodes != null) {
 			foreach(Vector3 node in map.polyData.nodes) {
 				Gizmos.color = Color.blue;
@@ -56,6 +54,7 @@ public class PolygonalVRP : MonoBehaviour {
                 Gizmos.DrawLine(line.point1,line.point2);
 			}
 		}
+
 		Gizmos.color = Color.green;
 		foreach (Vector3 v in map.polyData.start) {
 			Gizmos.DrawCube (v, new Vector3(3,1,3));
@@ -71,7 +70,7 @@ public class PolygonalVRP : MonoBehaviour {
 		if (agents != null) {
 			Gizmos.color = Color.magenta;
 			foreach (PolyAgent pagent in agents) {
-				Gizmos.DrawSphere (pagent.agent.transform.position, 5);
+				Gizmos.DrawSphere (pagent.agent.transform.position, R);
 			}
 		}
     }

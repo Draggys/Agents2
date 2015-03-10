@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 /* Vehicle Routing Problem Polygonal Logic */
-public class VRPPL {
+public class VRPPL : MonoBehaviour{
 
 	List<Vector3> customers;
 	int size;
@@ -39,9 +39,11 @@ public class VRPPL {
 	}
 
 	private float Dist(Vector3 customer, PolyAgent agent) {
-		float first = Vector3.Distance (customer, agent.agent.transform.position);
-		float second = Vector3.Distance (customer, agent.end);
-		
+		float first = Mathf.Abs (customer.x - agent.agent.transform.position.x) 
+			+ Mathf.Abs (customer.z - agent.agent.transform.position.z);
+		float second = Mathf.Abs (agent.end.x - customer.x) 
+			+ Mathf.Abs (agent.end.z - customer.z);
+
 		if (customers.Count / size > 0.5)
 			return first;
 		return first + second;

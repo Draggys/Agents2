@@ -23,6 +23,7 @@ public class PolyData {
 		customers = new List<Vector3> ();
 	}
 
+
 	/*
 	 * For debugging purposes: Only works if class inherits MonoBehavior
 	public void printNodes() {

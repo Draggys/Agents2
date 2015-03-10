@@ -13,21 +13,28 @@ public class DynamicPointModel : MonoBehaviour, Model {
 	public float dynM ;
 	List<Vector3> path;
 	PolyAgent agent;
+	PolyCollision collision;
+	int LAScale;
 
 	public DynamicPointModel() {
 		//accMax = 0.1f;
 		accMax = 10;
+		LAScale = 20;
 	}
 	
-	public void SetPath(List<Vector3> path, PolyAgent agent) {
+	public void SetPath(List<Vector3> path, PolyAgent agent, List<Line> lines) {
 		this.path = path;
 		this.agent = agent;
+		
+		collision = new PolyCollision (lines);
 	}
 	
 	public void StartCoroutineMove() {
 		StartCoroutine ("Move");
+		agent.running = true;
 	}
-	
+
+	Vector3 d_dir;
 	public IEnumerator Move() {
 		int index = 0;
 		float velX = 0;
@@ -40,26 +47,24 @@ public class DynamicPointModel : MonoBehaviour, Model {
 		
 		Vector3 current = path[index];
 
-		//Stopwatch stopwatch = new Stopwatch();
-		//stopwatch.Start();
+
 		while (true) {
 			float distance=Vector3.Distance(agent.agent.transform.position, current);
 			if(distance<=1) {
 				index++;
 				if(index >= path.Count) {
-					//stopwatch.Stop();
-					//print("Time elapsed: " + stopwatch.Elapsed);
+					agent.running = false;
 					yield break;
 				}
 				current = path[index];
-				print (current);
+//				print (current);
 				//dynVel=0;
 			}
 
 			Vector3 dir;
 			float distanceToTarget=Vector3.Distance (current, agent.agent.transform.position);
 			dir=Vector3.Normalize(current-agent.agent.transform.position);
-			
+
 			Vector3 normVel=Vector3.Normalize(dynPVel);
 			
 			//The change is the difference between the direction and the velocity vector
@@ -67,11 +72,37 @@ public class DynamicPointModel : MonoBehaviour, Model {
 			
 			dynPVel.x=dynPVel.x+accMax*change.x*Time.deltaTime;
 			dynPVel.z=dynPVel.z+accMax*change.z*Time.deltaTime;
-			
+
+			// start handle collision
+			d_dir = dir;
+			Vector3 avoidance = Vector3.zero;
+			Vector3 lookAhead = dir * LAScale;
+			Line LAline = new Line(agent.agent.transform.position, 
+			                       agent.agent.transform.position + lookAhead);
+			if(collision.IntersectsWithObstacle (LAline)) {
+			//	dynPVel.x = -dynPVel.x;
+			//	dynPVel.z = -dynPVel.z * 2;
+
+				Line sideLine = new Line(agent.agent.transform.position,
+				                         agent.agent.transform.position + Vector3.right * (LAScale/2));
+
+
+			}
+
 			agent.agent.transform.position = agent.agent.transform.position+dynPVel;
+			
 
 			yield return null;
 		}
+	}
+
+	void OnDrawGizmos() {/*
+		Gizmos.color = Color.red;
+		Gizmos.DrawLine (agent.agent.transform.position, 
+		                 agent.agent.transform.position + d_dir * LAScale);
+		Gizmos.DrawLine (agent.agent.transform.position, 
+		                 agent.agent.transform.position + Vector3.right * LAScale/2);
+		                 */
 	}
 }
 
