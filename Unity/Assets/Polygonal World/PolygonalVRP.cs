@@ -1,20 +1,46 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PolygonalVRP : MonoBehaviour {
 
-	private PolyMapLoader map;
+	Model model;
+	PolyMapLoader map;
+	PolyData mapData;
+	List<PolyAgent> agents = null;
+	VRPPL vrp;
+
+	float R;
 
 	// Use this for initialization
 	void Start () {
 		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button" , "polygMap1/customerPos");
-        
+		mapData = map.polyData;
+		R = 1;
+
+		agents = new List<PolyAgent> ();
+		for(int i = 0; i < mapData.start.Count; i++) {
+			Vector3 start = mapData.start[i];
+			Vector3 end = mapData.end[i];
+			agents.Add (new PolyAgent("Agent " + i, start, end, R));
+			agents [i].agent.renderer.material.color = Color.blue;
+			agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
+		}
+
+		vrp = new VRPPL (mapData.customers, agents.Count);
+
+		foreach (PolyAgent agent in agents) {
+			List<Vector3> path = new List<Vector3> ();
+			path.Add (agent.end);
+			agent.model.SetPath (path, agent);
+			agent.model.StartCoroutineMove();
+		}
     }
 	
 	// Update is called once per frame
 	void Update () {
-	
+		
 	}
 
 	void OnDrawGizmos() {
@@ -32,15 +58,21 @@ public class PolygonalVRP : MonoBehaviour {
 		}
 		Gizmos.color = Color.green;
 		foreach (Vector3 v in map.polyData.start) {
-			Gizmos.DrawCube (v, new Vector3(2,1,2));
+			Gizmos.DrawCube (v, new Vector3(3,1,3));
         }
 		Gizmos.color = Color.red;
 		foreach (Vector3 v in map.polyData.end) {
-			Gizmos.DrawCube (v, new Vector3 (2, 1, 2));
+			Gizmos.DrawCube (v, new Vector3 (3, 1, 3));
 		}
 		Gizmos.color = Color.blue;
 		foreach (Vector3 v in map.polyData.customers) {
-			Gizmos.DrawCube (v, new Vector3 (2, 1, 2));
+			Gizmos.DrawCube (v, new Vector3 (3, 1, 3));
+		}
+		if (agents != null) {
+			Gizmos.color = Color.magenta;
+			foreach (PolyAgent pagent in agents) {
+				Gizmos.DrawSphere (pagent.agent.transform.position, 5);
+			}
 		}
     }
 }
