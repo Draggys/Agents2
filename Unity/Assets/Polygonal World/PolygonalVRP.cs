@@ -30,5 +30,17 @@ public class PolygonalVRP : MonoBehaviour {
                 Gizmos.DrawLine(line.point1,line.point2);
 			}
 		}
+		Gizmos.color = Color.green;
+		foreach (Vector3 v in map.polyData.start) {
+			Gizmos.DrawCube (v, new Vector3(2,1,2));
+        }
+		Gizmos.color = Color.red;
+		foreach (Vector3 v in map.polyData.end) {
+			Gizmos.DrawCube (v, new Vector3 (2, 1, 2));
+		}
+		Gizmos.color = Color.blue;
+		foreach (Vector3 v in map.polyData.customers) {
+			Gizmos.DrawCube (v, new Vector3 (2, 1, 2));
+		}
     }
 }

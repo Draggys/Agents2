@@ -97,7 +97,7 @@ public class PolyMapLoader {
 		file = new System.IO.StreamReader (customerFile);
 		while ((line = file.ReadLine()) != null) {
 			string[] pos = line.Split(' ');
-			polyData.end.Add (new Vector3(float.Parse (pos[0])-1, 1, float.Parse (pos[1])-1));
+			polyData.customers.Add (new Vector3(float.Parse (pos[0])-1, 1, float.Parse (pos[1])-1));
 		}
 
 		/*System.IO.StreamReader buttonReader = new System.IO.StreamReader (buttonsFile);

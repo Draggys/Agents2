@@ -20,6 +20,7 @@ public class PolyData {
 		lines = new List<Line> ();
 		start = new List<Vector3> ();
 		end = new List<Vector3> ();
+		customers = new List<Vector3> ();
 	}
 
 	/*
