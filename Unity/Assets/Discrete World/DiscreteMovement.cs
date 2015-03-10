@@ -38,6 +38,21 @@ public class DiscreteMovement : MonoBehaviour {
 		grid = GameObject.FindGameObjectWithTag ("Grid").GetComponent<Grid> ();
 
 		astar = new AStar (grid.rTable);
+
+		for(int i = 0; i < grid.mapData.start.Count; i++) {
+			Vector2 pos = grid.mapData.start[i];
+			Node node = grid.grid[(int)(pos[0]), (int)(pos[1])];
+			List<Node> temp=new List<Node> ();
+			Vector2 end = grid.mapData.end[i];
+			Node endNode = grid.grid[(int)end[0], (int)end[1]];
+			temp.Add(endNode);
+			agents.Add (new Agent("Agent " + i, node, temp));
+			agents [i].agent.renderer.material.color = Color.blue;
+
+		}
+
+		ready = agents.Count;
+
 		/*
 		Node startNode = grid.grid [Convert.ToInt32(grid.mapData.start.x), Convert.ToInt32 (grid.mapData.start.y)];
 		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
