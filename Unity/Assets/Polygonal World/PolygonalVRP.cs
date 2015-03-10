@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class PolygonalVRP : MonoBehaviour {
 
 	Model model;
-	PolyMapLoader map;
+	PolyMapLoaderT3 map;
 	PolyData mapData;
 	List<PolyAgent> agents = null;
 	VRPPL vrp;
@@ -14,7 +14,7 @@ public class PolygonalVRP : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
+		map = new PolyMapLoaderT3 ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button" , "polygMap1/customerPos");
 		mapData = map.polyData;
 		R = 5;
@@ -41,7 +41,7 @@ public class PolygonalVRP : MonoBehaviour {
 
 
 	void OnDrawGizmos() {
-		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
+		map = new PolyMapLoaderT3 ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button" , "polygMap1/customerPos");
 
 		if (map.polyData.nodes != null) {

@@ -13,7 +13,7 @@ public class VisGraph : MonoBehaviour {
 	PolygonalAStar pathFinder = new PolygonalAStar();
 
 	public float kinematic_vel;
-	PolyMapLoader map;
+	PolyMapLoaderT3 map;
 
 	List<PolyAgent> agents = null;
 	VRPPL vrp = null;
@@ -22,7 +22,7 @@ public class VisGraph : MonoBehaviour {
 	Stopwatch stopwatch = new Stopwatch();
 
 	void Start() {
-		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
+		map = new PolyMapLoaderT3 ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button" , "polygMap1/customerPos");
 		polyData = map.polyData;
 

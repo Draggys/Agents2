@@ -9,6 +9,7 @@ public class PolyData {
 	public List<int> buttons;
 	public List<PolyNode> figures;
 	public List<Line> lines;
+	public List<Vector3> customers;
 
 	public PolyData() {
 		nodes = new List<Vector3> ();
@@ -17,6 +18,7 @@ public class PolyData {
 		lines = new List<Line> ();
 		start=new List<Vector3>();
 		end=new List<Vector3>();
+		customers = new List<Vector3> ();
 	}
 
 	/*

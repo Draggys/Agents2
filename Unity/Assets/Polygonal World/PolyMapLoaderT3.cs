@@ -2,14 +2,14 @@
 using System.Collections;
 using System;
 
-public class PolyMapLoader {
+public class PolyMapLoaderT3 {
 
 	private string prefix = Application.dataPath+"/Data/Polygonal/";
 	private string postfix = ".txt";
 
 	public PolyData polyData;
 
-	public PolyMapLoader(string x, string y, string goal, string start, string buttons, string customers) {
+	public PolyMapLoaderT3(string x, string y, string goal, string start, string buttons, string customers) {
 		polyData = new PolyData();
 		string xFile = prefix + x + postfix;
 		string yFile = prefix + y + postfix;
