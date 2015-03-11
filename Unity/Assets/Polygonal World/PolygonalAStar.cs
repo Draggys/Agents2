@@ -39,7 +39,7 @@ public class PolygonalAStar{
 			}
 		}
 		
-		return new List<PolyNode> ();
+		return null;
 	}
 	
 	float Heuristic(Vector3 A, Vector3 B) {

@@ -80,13 +80,8 @@ public class DynamicPointModel : MonoBehaviour, Model {
 			Line LAline = new Line(agent.agent.transform.position, 
 			                       agent.agent.transform.position + lookAhead);
 			if(collision.IntersectsWithObstacle (LAline)) {
-			//	dynPVel.x = -dynPVel.x;
-			//	dynPVel.z = -dynPVel.z * 2;
-
-				Line sideLine = new Line(agent.agent.transform.position,
-				                         agent.agent.transform.position + Vector3.right * (LAScale/2));
-
-
+				//dynPVel.x = -dynPVel.x;
+				//dynPVel.z = -dynPVel.z;
 			}
 
 			agent.agent.transform.position = agent.agent.transform.position+dynPVel;
@@ -96,13 +91,11 @@ public class DynamicPointModel : MonoBehaviour, Model {
 		}
 	}
 
-	void OnDrawGizmos() {/*
+	void OnDrawGizmos() {
 		Gizmos.color = Color.red;
-		Gizmos.DrawLine (agent.agent.transform.position, 
-		                 agent.agent.transform.position + d_dir * LAScale);
-		Gizmos.DrawLine (agent.agent.transform.position, 
-		                 agent.agent.transform.position + Vector3.right * LAScale/2);
-		                 */
+	//	Gizmos.DrawLine (agent.agent.transform.position, 
+	//	                 agent.agent.transform.position + d_dir * LAScale);
+
 	}
 }
 

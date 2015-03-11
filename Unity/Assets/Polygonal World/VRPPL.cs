@@ -5,13 +5,14 @@ using System.Collections.Generic;
 /* Vehicle Routing Problem Polygonal Logic */
 public class VRPPL : MonoBehaviour{
 
-	List<Vector3> customers;
+	public List<Vector3> customers;
 	int size;
 
 	public VRPPL(List<Vector3> customers, int agents) {
 		this.customers = customers;
 		size = agents;
 	}
+
 
 	public KeyValuePair<PolyAgent, Vector3> NextAgentAndCustomer(List<PolyAgent> agents) {
 		if (customers.Count == 0) {
@@ -37,7 +38,6 @@ public class VRPPL : MonoBehaviour{
 		customers.RemoveAt(j);
 		return new KeyValuePair<PolyAgent, Vector3> (closestAgent, ret);
 	}
-
 	private float Dist(Vector3 customer, PolyAgent agent) {
 		float first = Mathf.Abs (customer.x - agent.agent.transform.position.x) 
 			+ Mathf.Abs (customer.z - agent.agent.transform.position.z);
