@@ -15,7 +15,7 @@ public class DynamicCarModel : MonoBehaviour, Model {
 	public float maxWheelAngle = 57.3f;
 	public float dynF = 10;
 	public float dynMass = 5;
-	public float accMax = 0.2f;
+	public float accMax = 1f;
     
 	public int collisionSize = 10;
 	
@@ -116,7 +116,7 @@ public class DynamicCarModel : MonoBehaviour, Model {
 		Gizmos.color = Color.yellow;
 		if (path != null) {
 			foreach(Vector3 p in path) {
-				Gizmos.DrawSphere (p, 3);
+		//		Gizmos.DrawSphere (p, 3);
 			}
 		}
 

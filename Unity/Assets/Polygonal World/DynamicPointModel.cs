@@ -18,7 +18,7 @@ public class DynamicPointModel : MonoBehaviour, Model {
 
 	public DynamicPointModel() {
 		//accMax = 0.1f;
-		accMax = 10;
+		accMax = 1f;
 		LAScale = 20;
 	}
 	

@@ -23,7 +23,7 @@ public class PolygonalVRP : MonoBehaviour {
 		for(int i = 0; i < mapData.start.Count; i++) {
 			Vector3 start = mapData.start[i];
 			Vector3 end = mapData.end[i];
-			agents.Add (new PolyAgent("Agent " + i, start, end, R));
+			agents.Add (new PolyAgent("Agent " + i, start, end, R, "point"));
 			agents [i].agent.renderer.material.color = Color.blue;
 			agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
 		}

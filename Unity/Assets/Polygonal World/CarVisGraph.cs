@@ -35,8 +35,8 @@ public class CarVisGraph : MonoBehaviour {
 		for(int i = 0; i < polyData.start.Count; i++) {
 			Vector3 start = polyData.start[i];
 			Vector3 end = polyData.end[i];
-			agents.Add (new PolyAgent("Agent " + i, start, end, R));
-			agents [i].agent.renderer.material.color = Color.blue;
+			agents.Add (new PolyAgent("Agent " + i, start, end, R, "car"));
+			agents [i].agent.renderer.material.color = Color.black;
 			agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
 			//agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
 		}
@@ -115,7 +115,7 @@ public class CarVisGraph : MonoBehaviour {
 		
 		bool done = true;
 		foreach (PolyAgent agent in agents) {
-			if(Vector3.Distance (agent.agent.transform.position, agent.end) > 1) {
+			if(Vector3.Distance (agent.agent.transform.position, agent.end) > 4) {
 				done = false;
 				break;
 			}
@@ -123,7 +123,7 @@ public class CarVisGraph : MonoBehaviour {
 		if (done) {
 			if(time) {
 				stopwatch.Stop ();
-				print ("Time elapsed: " + stopwatch.Elapsed);
+				print ("Dynamic Car Model Time elapsed: " + stopwatch.Elapsed);
 				time = false;
 			}
 		}
@@ -238,7 +238,7 @@ public class CarVisGraph : MonoBehaviour {
 		if (walkableLines != null) {
 			foreach(Line line in walkableLines) {
 				Gizmos.color = Color.grey;
-				Gizmos.DrawLine(line.point1, line.point2);
+		//		Gizmos.DrawLine(line.point1, line.point2);
 			}
 		}
 		
@@ -251,7 +251,7 @@ public class CarVisGraph : MonoBehaviour {
 				}
 				foreach(Vector3 v in ob.vertices) {
 					Gizmos.color = Color.white;
-					Gizmos.DrawSphere (v, 5);
+			//		Gizmos.DrawSphere (v, 5);
 				}
 			}
 			
@@ -270,7 +270,8 @@ public class CarVisGraph : MonoBehaviour {
 			if (agents != null) {
 				Gizmos.color = Color.magenta;
 				foreach (PolyAgent pagent in agents) {
-					Gizmos.DrawSphere (pagent.agent.transform.position, R);
+					//Gizmos.DrawSphere (pagent.agent.transform.position, R);
+					//Gizmos.DrawCube (
 				}
 			}
 		}

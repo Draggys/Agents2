@@ -12,9 +12,17 @@ public class PolyAgent{
 	public bool running;
 	public List<Vector3> visited;
 	
-	public PolyAgent(string id, Vector3 start, Vector3 end, float r) {
+	public PolyAgent(string id, Vector3 start, Vector3 end, float r, string type) {
 		this.id = id;
-		agent = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+		if (type == "car") {
+			agent = GameObject.CreatePrimitive (PrimitiveType.Cube);
+			// Car size
+			agent.transform.localScale = new Vector3(5, 1, 10);
+		} else {
+			agent = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+			// Point size
+			agent.transform.localScale = new Vector3(5, 5, 5);
+		}
 		agent.transform.position = start;
 		R = r;
 		this.end = end;

@@ -35,8 +35,8 @@ public class VisGraph : MonoBehaviour {
 		for(int i = 0; i < polyData.start.Count; i++) {
 			Vector3 start = polyData.start[i];
 			Vector3 end = polyData.end[i];
-			agents.Add (new PolyAgent("Agent " + i, start, end, R));
-			agents [i].agent.renderer.material.color = Color.blue;
+			agents.Add (new PolyAgent("Agent " + i, start, end, R, "point"));
+			agents [i].agent.renderer.material.color = Color.magenta;
 			agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
 		}
 
@@ -122,7 +122,7 @@ public class VisGraph : MonoBehaviour {
 		if (done) {
 			if(time) {
 				stopwatch.Stop ();
-				print ("Time elapsed: " + stopwatch.Elapsed);
+				print ("Dynamic Point Model Time elapsed: " + stopwatch.Elapsed);
 				time = false;
 			}
 		}
