@@ -15,7 +15,7 @@ Agent
 #################
 Virtual Structure
 #################
-// The virtual structure decided where to go
+// The virtual structure decides where to go
 VirtualStructure{
  Vector3[N] pos; // agent id indexed
  Move(Vector3) // TODO: Decide how the virtual structure should move forward
