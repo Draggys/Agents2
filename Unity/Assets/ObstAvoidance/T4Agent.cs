@@ -26,7 +26,7 @@ public class T4Agent {
 		velocity = new Vector3 (0,0,0);
 		agentSize = 0.5f;
 		timeStepLimit =300f;
-		angleEqLimit = 10f;
+		angleEqLimit = 2f;
 	}
 
 
@@ -36,10 +36,12 @@ public class T4Agent {
 	 * the function will return a direction vector that the agent should use
 	 * in the next timestep. 
 	 */
-	public Vector3 collisionDetection(List<T4Agent> agents, float acceleration){
+	public Vector3 collisionDetection(List<T4Agent> agents, float acceleration, Vector3 goalPos){
 		//If we have the last angles between the agent and the other agents
 		if (lastAngles != null) {
 			Vector3 dirVector=new Vector3(0,0,0);
+			float closests=float.PositiveInfinity;
+			Vector3 closestVec=new Vector3();
 			for(int i=0;i<agents.Count;i++){
 				T4Agent curAgent=agents[i];
 				Vector3 thisAgentPos = this.agent.transform.position;
@@ -48,18 +50,29 @@ public class T4Agent {
 				if(!string.Equals(curAgent.id,this.id)){
 					float timeSteps=this.timeStepsBetween(curAgent,acceleration);
 					if(timeSteps<=timeStepLimit){
-						float angle=Vector3.Angle(thisAgentPos-otherAgentPos,Vector3.right);
+						float angle=Vector3.Angle(otherAgentPos-thisAgentPos,Vector3.right);
 						float lastAngle=lastAngles[i];
 						//If the difference between lastAngle and the current angle is small enough
 						if(lastAngle-angle<angleEqLimit){
-							Vector3 temp=thisAgentPos-otherAgentPos;
-							dirVector=dirVector+new Vector3((-1f/Mathf.Pow(timeSteps,2))*temp.x,0,(-1f/Mathf.Pow(timeSteps,2))*temp.z);
+							float distToOther=Vector3.Distance(thisAgentPos,otherAgentPos);
+							float distToTarget=Vector3.Distance(thisAgentPos,goalPos);
+							if(distToTarget>distToOther){
+								Vector3 temp=otherAgentPos-thisAgentPos;
+								if(timeSteps<closests){
+									closests=timeSteps;
+									closestVec=temp;
+								}
+							}
+
+							//dirVector=dirVector+new Vector3((-1f/Mathf.Pow(timeSteps,2))*temp.x,0,(-1f/Mathf.Pow(timeSteps,2))*temp.z);
 						}
 						lastAngles[i]=angle;
 					}
 				}
 
 			}
+			dirVector=new Vector3(-0.5f*closestVec.x,0,-closestVec.z);
+
 			return dirVector;
 				} 
 		//If we dont have any previous angles we just calculate the current and save them
@@ -69,7 +82,7 @@ public class T4Agent {
 				T4Agent curAgent=agents[i];
 				//If it's not the same agent
 				if(!string.Equals(curAgent.id,this.id)){
-					float angle=Vector3.Angle(this.agent.transform.position-curAgent.agent.transform.position,Vector3.right);
+					float angle=Vector3.Angle(curAgent.agent.transform.position-this.agent.transform.position,Vector3.right);
 					lastAngles.Add(angle);
 				}
 				else{
@@ -103,12 +116,12 @@ public class T4Agent {
 
 		//Calculate the summed speed for both agents in the direction directly towards eachother
 		float speed = acceleration;
-		float angle = Vector3.Angle (thisAgentPos-otherAgentPos, this.velocity);
+		float angle = Vector3.Angle (otherAgentPos-thisAgentPos, this.velocity);
 		//Transform the angle to radians
 		angle = angle * (Mathf.PI / 180.0f);
 		speed = speed + this.velocity.magnitude * Mathf.Cos (angle);
 		//And now for the other agents speed
-		angle = Vector3.Angle (otherAgentPos - thisAgentPos, otherAgent.velocity);
+		angle = Vector3.Angle (thisAgentPos-otherAgentPos , otherAgent.velocity);
 		angle = angle * (Mathf.PI / 180.0f);
 		speed = speed + otherAgent.velocity.magnitude * Mathf.Cos (angle);
 

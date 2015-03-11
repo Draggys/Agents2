@@ -26,7 +26,7 @@ public class T4DynamicPoint : MonoBehaviour {
 
 		agents=new List<T4Agent>();
 
-		for (int i=0; i<map.polyData.start.Count; i=i+2) {
+		for (int i=0; i<map.polyData.start.Count; i++) {
 			Vector3 startNode=map.polyData.start[i];
 			Vector3 endNode=map.polyData.end[i];
 			T4Agent newAgent=new T4Agent("Agent "+agentCounter, startNode, endNode);
@@ -54,8 +54,12 @@ public class T4DynamicPoint : MonoBehaviour {
 				if(atGoal[i]==true)
 					agentsAtGoal++;
 			}
-			if(agentsAtGoal==agents.Count)
+			if(agentsAtGoal==agents.Count){
+				Debug.Log("Done");
+				float timeAfter=Time.time;
+				Debug.Log("Time:"+(timeAfter-timeBefore));
 				yield break;
+			}
 			//Iterate all agents
 			for (int i=0; i<agents.Count; i++) {
 
@@ -76,7 +80,7 @@ public class T4DynamicPoint : MonoBehaviour {
 				}
 			
 				//Check collision
-				Vector3 collisionVec=curAgent.collisionDetection(agents,accMax);
+				Vector3 collisionVec=curAgent.collisionDetection(agents,accMax,current);
 				//If the collisionVector is all zeros we just move along as before
 				if(collisionVec.Equals(new Vector3(0,0,0))){
 					//Debug.Log("CollVec zeros");
@@ -99,7 +103,6 @@ public class T4DynamicPoint : MonoBehaviour {
 
 					//Debug.Log("change"+change);
 
-
 				float accInX = change.x / (Mathf.Abs (change.x) + Mathf.Abs (change.z));
 				float accInZ = change.z / (Mathf.Abs (change.x) + Mathf.Abs (change.z));
 			
@@ -110,8 +113,23 @@ public class T4DynamicPoint : MonoBehaviour {
 					accInZ = 0;
 				}
 			
-				dynPVel.x = dynPVel.x + accMax * accInX * Time.deltaTime;
-				dynPVel.z = dynPVel.z + accMax * accInZ * Time.deltaTime;
+					float distanceToTarget=Vector3.Distance (current, curAgent.agent.transform.position);
+					
+					float neededDistToStop=(Mathf.Pow(dynPVel.magnitude,2)/2*accMax);
+					//Accelerate
+					if(distanceToTarget>neededDistToStop){
+						dynPVel.x = dynPVel.x + accMax * accInX * Time.deltaTime;
+						dynPVel.z = dynPVel.z + accMax * accInZ * Time.deltaTime;
+					}
+					//Decelerate
+					else{
+						//Debug.Log("Decelerate");
+						dynPVel.x = dynPVel.x - accMax * accInX * Time.deltaTime;
+						dynPVel.z = dynPVel.z - accMax * accInZ * Time.deltaTime;
+					}
+
+
+				
 
 					//Debug.Log("DynPVel="+dynPVel);
 
@@ -123,11 +141,25 @@ public class T4DynamicPoint : MonoBehaviour {
 				}
 				//If the collision vector is not all zeros we should steer in that direction
 				else{
-					Debug.Log("Collision course");
+					//Debug.Log("Collision course");
 					//Debug.Log("CollVec:"+collisionVec);
 					Vector3 dir;
-					
-					dir = Vector3.Normalize (collisionVec);
+
+					Vector3 goalDir=Vector3.Normalize (current - curAgent.agent.transform.position);
+
+					float scaleColVec=0.7f;
+
+					if(collisionVec.magnitude>1){
+						collisionVec=Vector3.Normalize(collisionVec);
+					}
+
+					Vector3 scaledVec=new Vector3();
+					scaledVec.x=scaleColVec*collisionVec.x+(1-scaleColVec)*goalDir.x;
+					scaledVec.y=0;
+					scaledVec.z=scaleColVec*collisionVec.z+(1-scaleColVec)*goalDir.z;
+
+					//dir = Vector3.Normalize (collisionVec);
+					dir=Vector3.Normalize(scaledVec);
 
 					//Debug.Log("CollVec norm:"+dir);
 
@@ -150,8 +182,20 @@ public class T4DynamicPoint : MonoBehaviour {
 						accInZ = 0;
 					}
 					
-					dynPVel.x = dynPVel.x + accMax * accInX * Time.deltaTime;
-					dynPVel.z = dynPVel.z + accMax * accInZ * Time.deltaTime;
+					float distanceToTarget=Vector3.Distance (current, curAgent.agent.transform.position);
+					
+					float neededDistToStop=(Mathf.Pow(dynPVel.magnitude,2)/2*accMax);
+					//Accelerate
+					if(distanceToTarget>neededDistToStop){
+						dynPVel.x = dynPVel.x + accMax * accInX * Time.deltaTime;
+						dynPVel.z = dynPVel.z + accMax * accInZ * Time.deltaTime;
+					}
+					//Decelerate
+					else{
+						//Debug.Log("Decelerate");
+						dynPVel.x = dynPVel.x - accMax * accInX * Time.deltaTime;
+						dynPVel.z = dynPVel.z - accMax * accInZ * Time.deltaTime;
+					}
 
 					//Update the velocity vector
 					curAgent.velocity=dynPVel;
