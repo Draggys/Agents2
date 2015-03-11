@@ -1,0 +1,42 @@
+###############
+Leader follower
+###############
+// The leader decides where to go
+Agent
+{
+ Agent[2] children;
+ Agent parent;
+
+ Agent CreateChild();
+ FollowParent();
+ FollowPath(); // for the leader
+}
+
+#################
+Virtual Structure
+#################
+// The virtual structure decided where to go
+VirtualStructure{
+ Vector3[N] pos; // agent id indexed
+ Move(Vector3) // TODO: Decide how the virtual structure should move forward
+}
+
+// Movement
+VirtualStructure.Move(Vector3)
+for each agent a:
+ a.move(VirtualStructure.pos[a.id]);
+
+###############################
+Decentralized Local Interaction
+###############################
+// All agents knows where to go
+// But that's not necessarily the most important thing
+// for the agent right now, depending on the three other rules
+
+for each agent a:
+ a.separate();
+ a.align(); 
+ a.cohesion();
+ a.steerTowardsGoal();
+
+// For the rules see Reynolds' Boids.
