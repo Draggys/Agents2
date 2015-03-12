@@ -15,7 +15,7 @@ public class T4DynamicPoint : MonoBehaviour {
 	public float zLow;
 	public float zHigh;
 
-	public List<T4Agent> agents;
+	public List<T4Agent2> agents;
 
 	// Use this for initialization
 	void Start () {
@@ -24,12 +24,12 @@ public class T4DynamicPoint : MonoBehaviour {
 
 		int agentCounter = 0;
 
-		agents=new List<T4Agent>();
+		agents=new List<T4Agent2>();
 
-		for (int i=0; i<map.polyData.start.Count; i++) {
+		for (int i=0; i<map.polyData.start.Count; i=i+1) {
 			Vector3 startNode=map.polyData.start[i];
 			Vector3 endNode=map.polyData.end[i];
-			T4Agent newAgent=new T4Agent("Agent "+agentCounter, startNode, endNode);
+			T4Agent2 newAgent=new T4Agent2("Agent "+agentCounter, startNode, endNode);
 			agents.Add(newAgent);
 			agentCounter++;
 			}
@@ -63,11 +63,12 @@ public class T4DynamicPoint : MonoBehaviour {
 			//Iterate all agents
 			for (int i=0; i<agents.Count; i++) {
 
+				/*
 				if(atGoal[i]==true){
 					continue;
-				}
+				}*/
 
-				T4Agent curAgent=agents[i];
+				T4Agent2 curAgent=agents[i];
 				Vector3 current=curAgent.goalPos;
 				Vector3 dynPVel=curAgent.velocity;
 
@@ -76,9 +77,31 @@ public class T4DynamicPoint : MonoBehaviour {
 				if (distance <= goalInterval * curVel) {
 					//Reached goal
 					atGoal[i]=true;	
-					continue;
+					//continue;
 				}
 			
+
+				//The code below is used for the 2nd solution of T4
+
+				Vector3 newVel=curAgent.findMinimumPenaltyVel(agents,accMax,current,goalInterval);
+
+				//Debug.Log("newVel:"+newVel);
+
+				//Debug.Log("DynPVel="+dynPVel);
+					
+				//Update the velocity vector
+				curAgent.velocity=newVel;
+					
+				curAgent.agent.transform.position = curAgent.agent.transform.position + newVel;
+					
+				
+
+
+
+
+				/*
+				 * BELOW IS USED FOR THE FIRST SOLUTION OF T4
+
 				//Check collision
 				Vector3 collisionVec=curAgent.collisionDetection(agents,accMax,current);
 				//If the collisionVector is all zeros we just move along as before
@@ -167,10 +190,7 @@ public class T4DynamicPoint : MonoBehaviour {
 					
 					//If we are on a collision course we just want to move the other way
 					Vector3 change = dir;
-					/*
-					if(!normVel.Equals(dir)){
-						change = Vector3.Normalize (dir - normVel);
-					}*/
+
 					
 					float accInX = change.x / (Mathf.Abs (change.x) + Mathf.Abs (change.z));
 					float accInZ = change.z / (Mathf.Abs (change.x) + Mathf.Abs (change.z));
@@ -202,7 +222,7 @@ public class T4DynamicPoint : MonoBehaviour {
 
 					curAgent.agent.transform.position = curAgent.agent.transform.position + dynPVel;
 
-				}
+				}*/
 
 
 				yield return null;
