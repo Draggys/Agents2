@@ -43,8 +43,8 @@ public class DynamicCarModel : MonoBehaviour, Model {
 	bool firstStop = true;
 	public IEnumerator Move() {
 		// Cheat align the vehicle in accordance to the path at spawn time
-		Quaternion test = Quaternion.LookRotation (path[0] - agent.agent.transform.position);
-		agent.agent.transform.rotation = Quaternion.RotateTowards (agent.agent.transform.rotation, test, 9000);
+		//Quaternion test = Quaternion.LookRotation (path[0] - agent.agent.transform.position);
+		//agent.agent.transform.rotation = Quaternion.RotateTowards (agent.agent.transform.rotation, test, 9000);
 
 		int index = 0;
 		current = path[index];
@@ -76,7 +76,7 @@ public class DynamicCarModel : MonoBehaviour, Model {
 			
 
 			//if(distToTarget > neededDistToStop) {
-			dynVel = dynVel + accMax;
+			dynVel = dynVel + accMax*Time.deltaTime;
 			//}
 			//else{
 			//	dynVel = dynVel - (dynF / dynMass);
