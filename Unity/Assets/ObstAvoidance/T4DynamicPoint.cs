@@ -36,6 +36,21 @@ public class T4DynamicPoint : MonoBehaviour {
 
 		Debug.Log ("Agents size:" + agents.Count);
 
+
+		/*
+		//Test
+		T4Agent2 temp = new T4Agent2 ("Test", new Vector3 (2, 1, 2), new Vector3(1,1,1));
+		T4Agent2 temp2 = new T4Agent2 ("Test2", new Vector3 (0, 1, 0), new Vector3 (2, 1, 2));
+		temp2.velocity = new Vector3 (1, 0, 1);
+		List<T4Agent2> tempList = new List<T4Agent2> ();
+		tempList.Add (temp);
+		tempList.Add (temp2);
+		float tempTime = temp2.calculateTimeToCollision (new Vector3 (1, 0, 1), tempList);
+		Debug.Log ("TempTime:" + tempTime);*/
+
+
+
+
 		StartCoroutine("Move");
 	
 	}

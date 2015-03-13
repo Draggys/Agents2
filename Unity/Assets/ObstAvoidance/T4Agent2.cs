@@ -30,7 +30,7 @@ public class T4Agent2 {
 		timeStepLimit =1000f;
 		//angleEqLimit = 2f;
 
-		weightPenalty = 100000000000f;
+		weightPenalty = 10f;
 	}
 
 
@@ -89,13 +89,17 @@ public class T4Agent2 {
 		//Sample N possible velocities
 		int N = 300;
 		float changeAng = 0;
-		Vector3 startVec = new Vector3 (1, 0, 1);
+
+		bool foundOneWithoutCol = false;
 		for (int i=0; i<N; i++) {
 			Vector3 accelerationDir=new Vector3(0,0,0);
-			accelerationDir.x=startVec.x*Mathf.Cos(changeAng);
-			accelerationDir.z=startVec.z*Mathf.Sin(changeAng);
+			accelerationDir.x=Mathf.Cos(changeAng);
+			accelerationDir.z=Mathf.Sin(changeAng);
 			Vector3 newVel=this.calculateNewVelocity(acceleration,accelerationDir);
 			timeToCollision=this.calculateTimeToCollision(newVel,agents);
+			if(float.IsPositiveInfinity(timeToCollision)){
+				foundOneWithoutCol=true;
+			}
 			float penalty=this.calculatePenalty(newVel,timeToCollision,prefVel);
 			if(penalty<minPen){
 				minPen=penalty;
@@ -105,13 +109,17 @@ public class T4Agent2 {
 			changeAng=changeAng+(2*Mathf.PI/N);
 			}
 
+		if (!foundOneWithoutCol) {
+			//Debug.Log("did not find Vel without col");
+			}
+
 		//Debug.Log ("MinPen:" + minPen);
 		//Debug.Log ("DotBetween prefVel and chosen vel" + Vector3.Dot (Vector3.Normalize(minPenVel), Vector3.Normalize(prefVel)));
 		return minPenVel;
 
 		}
 
-	private Vector3 calculateNewVelocity(float acceleration, Vector3 accelerateTowards){
+	public Vector3 calculateNewVelocity(float acceleration, Vector3 accelerateTowards){
 
 		Vector3 dir;
 		
@@ -122,7 +130,7 @@ public class T4Agent2 {
 		//Debug.Log("dir="+dir);
 		//Debug.Log("DynPVel="+dynPVel);
 		
-		Vector3 normVel = Vector3.Normalize (dynPVel);
+		//Vector3 normVel = Vector3.Normalize (dynPVel);
 
 		Vector3 change = dir;
 		
@@ -149,13 +157,13 @@ public class T4Agent2 {
 	 * given the other agent.
 	 * 
 	 */
-	private bool checkOkVelocity(Vector3 newVel, T4Agent2 otherAgent){
+	/*private bool checkOkVelocity(Vector3 newVel, T4Agent2 otherAgent){
 
 		Vector3 curPos = this.agent.transform.position;
 		Vector3 otherPos = otherAgent.agent.transform.position;
 		float radius = 2 * agentSize;
 		Vector3 toCircleCenter = otherPos - curPos;
-		Vector3 relativeVel = newVel - otherAgent.velocity;
+		Vector3 relativeVel = Vector3.Normalize(newVel - otherAgent.velocity);
 		//Debug.Log ("Relative Vel:" + relativeVel);
 		Vector3 velocityRay = curPos + timeStepLimit * relativeVel;
 
@@ -179,27 +187,91 @@ public class T4Agent2 {
 				}
 
 		return true;
-		}
+		}*/
 
 	private float findIntersectionPoint(Vector3 newVelocity, T4Agent2 otherAgent){
 
-		Vector3 velToCheck = 2 * newVelocity - this.velocity;
 
+		Vector3 velToCheck3 = 2 * newVelocity - this.velocity;
+		Vector2 velToCheck = new Vector2 ();
+		velToCheck.x = velToCheck3.x;
+		velToCheck.y = velToCheck3.z;
+
+		//Debug.Log ("VelTOCheck3:" + velToCheck3);
+		//Debug.Log("VelToCheck:"+velToCheck);
+
+		//Vector3 velToCheck = newVelocity ;
+		/*
 		Vector3 curPos = this.agent.transform.position;
 		Vector3 otherPos = otherAgent.agent.transform.position;
 		float r = 2 * agentSize;
 		Vector3 toCircleCenter = otherPos-curPos;
-		Vector3 relativeVel = velToCheck - otherAgent.velocity;
+		Vector3 relativeVel = Vector3.Normalize(velToCheck - otherAgent.velocity);
 		//Debug.Log ("Relative Vel:" + relativeVel);
-		Vector3 velocityRay = curPos + timeStepLimit * relativeVel;
+		Vector3 velocityRay =  (timeStepLimit * relativeVel) - curPos;*/
 
-		float a = Vector3.Dot(velocityRay, velocityRay ) ;
-		float b = 2*Vector3.Dot(toCircleCenter, velocityRay ) ;
-		float c = Vector3.Dot(toCircleCenter,toCircleCenter ) - r*r ;
+		Vector2 curPos = new Vector2 ();
+		curPos.x = this.agent.transform.position.x;
+		curPos.y = this.agent.transform.position.z;
+		Vector2 otherPos = new Vector2 ();
+		otherPos.x = otherAgent.agent.transform.position.x;
+		otherPos.y = otherAgent.agent.transform.position.z;
+		Vector2 toCircleCenter = otherPos - curPos;
+		Vector2 otherAgentVel = new Vector2 ();
+		otherAgentVel.x = otherAgent.velocity.x;
+		otherAgentVel.y = otherAgent.velocity.z;
+		Vector2 relativeVel = velToCheck - otherAgentVel;
+		Vector2 velocityRay = (timeStepLimit * relativeVel) - curPos;
+		float r = 2 * agentSize;
+
+
+		//Debug.Log ("To circle center:" + toCircleCenter);
+		//Debug.Log ("relativeVel:" + relativeVel);
+		//Debug.Log ("velocityRay:" + velocityRay);
+
 		
+		float angle = Vector2.Angle (velocityRay, toCircleCenter);
+		if (angle < 0.1f)
+						angle = 0;
+
+		angle = angle * (Mathf.PI / 180.0f);
+		//Debug.Log ("Angle:" + angle);
+
+		float distance = Mathf.Abs(Mathf.Sin (angle) * toCircleCenter.magnitude);
+		//Debug.Log ("Distance:" + distance);
+
+
+		//If the distance is less than the radius the velocity is not ok
+		if (distance <= r) {
+
+			float distAlongRay=Mathf.Abs(Mathf.Cos(angle)*toCircleCenter.magnitude);
+			float distInside=Mathf.Pow(r,2)-Mathf.Pow(distance,2);
+			float distToIntersect=distAlongRay-distInside;
+
+			float timeToIntersect=distToIntersect/relativeVel.magnitude;
+
+			//Debug.Log ("Line cut circle");
+			return timeToIntersect;
+			} 
+		else {
+			return float.PositiveInfinity;
+			}
+
+
+		/*
+		float a = Vector2.Dot(velocityRay, velocityRay ) ;
+		float b = 2*Vector2.Dot(toCircleCenter, velocityRay ) ;
+		float c = Vector2.Dot(toCircleCenter,toCircleCenter ) - r*r ;
+
+		Debug.Log ("a:" + a);
+		Debug.Log ("b:" + b);
+		Debug.Log ("c:" + c);
+
 		float discriminant = b*b-4*a*c;
+		Debug.Log ("Discriminant:" + discriminant);
 		if( discriminant < 0 )
 		{
+			//Debug.Log("RayTotalyMissed");
 			return float.PositiveInfinity;
 		}
 		else
@@ -215,7 +287,10 @@ public class T4Agent2 {
 			// a are nonnegative.
 			float t1 = (-b - discriminant)/(2*a);
 			float t2 = (-b + discriminant)/(2*a);
-			
+
+			Debug.Log("t1:"+t1);
+			Debug.Log ("t2:"+t2);
+
 
 			if( t1 >= 0 && t1 <= 1 )
 			{
@@ -247,10 +322,10 @@ public class T4Agent2 {
 
 			// no intn: FallShort, Past, CompletelyInside
 			return float.PositiveInfinity ;
-		}
+		}*/
 
 		}
-
+	/*
 	private bool isInReciprocalVO(Vector3 newVelocity, List<T4Agent2> agents){
 
 		Vector3 velToCheck = 2 * newVelocity - this.velocity;
@@ -268,14 +343,10 @@ public class T4Agent2 {
 
 		return false;
 
-		}
+		}*/
 	
 
-	private float calculateTimeToCollision(Vector3 newVelocity, List<T4Agent2> agents){
-
-		if (!this.isInReciprocalVO (newVelocity, agents)) {
-			return float.PositiveInfinity;
-				}
+	public float calculateTimeToCollision(Vector3 newVelocity, List<T4Agent2> agents){
 
 		float minTimeToCollision = float.PositiveInfinity;
 
@@ -298,7 +369,6 @@ public class T4Agent2 {
 		float insideRVOpenalty = 0;
 
 		if (!float.IsPositiveInfinity (timeToCollision)) {
-
 			insideRVOpenalty=weightPenalty*(1.0f/timeToCollision);
 			//Debug.Log("CollisionRisk. Adding to penalty:"+insideRVOpenalty);
 				}
