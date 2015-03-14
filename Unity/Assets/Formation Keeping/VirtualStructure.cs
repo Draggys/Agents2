@@ -78,13 +78,13 @@ public class VirtualStructure : MonoBehaviour {
 				pos[i] = transform.position - left * 10;
 			if(i == 3)
 				pos[i] = transform.position - dir * 10;
-
         }
     }
     
 	IEnumerator UpdateStructurePos(VirtualStructure vs) {
 		while (true) {
 			vs.UpdatePos ();
+			pos = vs.pos;
 
 			int j = 0;
 			foreach(PolyAgent agent in vs.agents) {
@@ -119,7 +119,7 @@ public class VirtualStructure : MonoBehaviour {
 		if (pos != null) {
 			Gizmos.color = Color.red;
 			foreach(Vector3 p in pos) {
-				Gizmos.DrawSphere (p, 20);
+				Gizmos.DrawSphere (p, 1);
 			}
 		}
 	}
