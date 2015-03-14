@@ -16,15 +16,15 @@ public class VirtualStructure : MonoBehaviour {
 	int updateSpeed;
 
 	void Start () {
-		vel = 10;
+		vel = 5;
 		updateSpeed = 1;
 		List<PolyAgent> agents = new List<PolyAgent> ();
 		numAgents = 4;
 		for(int i = 0; i < numAgents; i++) {
-			agents.Add (new PolyAgent(i + "", Vector3.zero, Vector3.zero, R, "car"));
+			agents.Add (new PolyAgent(i + "", Vector3.zero, Vector3.zero, R, "point"));
 			agents [i].agent.renderer.material.color = Color.yellow;
-			agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
-			//agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
+			//agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
+			agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
         }
         
 		List<Vector3> start = new List<Vector3> ();
@@ -41,7 +41,6 @@ public class VirtualStructure : MonoBehaviour {
 	public VirtualStructure(List<Vector3> wp, List<PolyAgent> agents) {
 		pos = new Vector3[agents.Count];
 		structureWP = wp;
-		vel = 50;
 		transform = GameObject.CreatePrimitive (PrimitiveType.Capsule).transform;
 
 		this.agents = agents;
@@ -51,8 +50,8 @@ public class VirtualStructure : MonoBehaviour {
 			Vector3 dir = transform.forward;
 			Vector3 left = Vector3.Cross (dir, Vector3.up);
             
-            if (i == 0)
-                pos[i] = transform.position + left * 10;
+			if (i == 0)
+				pos[i] = transform.position + left * 10;
             if (i == 1)
                 pos[i] = transform.position + dir * 10;
 			if (i == 2)
