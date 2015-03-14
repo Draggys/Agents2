@@ -10,10 +10,8 @@ public class T4Agent2 {
 	public GameObject agent;
 	public string id;
 	public Vector3 velocity;
-	//public List<float> lastAngles;
 	public float agentSize;
 	public float timeStepLimit;
-	//public float angleEqLimit;
 
 	private float weightPenalty;
 	
@@ -28,9 +26,8 @@ public class T4Agent2 {
 		velocity = new Vector3 (0,0,0);
 		agentSize = 0.5f;
 		timeStepLimit =1000f;
-		//angleEqLimit = 2f;
 
-		weightPenalty = 10f;
+		weightPenalty = 100f;
 	}
 
 
@@ -46,7 +43,7 @@ public class T4Agent2 {
 		//Test to check collisions
 		for (int i=0; i<agents.Count; i++) {
 			if(!string.Equals(this.id,agents[i].id)){
-				if(Vector3.Distance(this.agent.transform.position,agents[i].agent.transform.position)<2*agentSize){
+				if(Vector3.Distance(this.agent.transform.position,agents[i].agent.transform.position)*0.95<2*agentSize){
 					Debug.Log ("Two agents collided");
 				}
 			}
@@ -63,11 +60,13 @@ public class T4Agent2 {
 		if (Vector3.Distance (curPos, goalPos) > goalInterval) {
 			//Then calculate the preferred velocity
 			float distanceToTarget=Vector3.Distance (goalPos, curPos);
-			float prefSpeed=Mathf.Sqrt(distanceToTarget*2*acceleration*Time.deltaTime);
+			float prefSpeed=Mathf.Sqrt(distanceToTarget*2*acceleration);
 			//Debug.Log("Pref speed:"+prefSpeed);
 			Vector3 prefDir=Vector3.Normalize(goalPos-curPos);
 			prefVel=prefDir*prefSpeed;
 			}
+
+		//Debug.Log ("PrefVel:" + prefVel);
 
 		//Now we need to sample a bunch of possible velocities and check their penalty
 		Vector3 minPenVel = Vector3.zero;
@@ -132,11 +131,12 @@ public class T4Agent2 {
 		
 		//Vector3 normVel = Vector3.Normalize (dynPVel);
 
-		Vector3 change = dir;
+		Vector3 change = Vector3.Normalize(dir);
 		
 		float accInX = change.x / (Mathf.Abs (change.x) + Mathf.Abs (change.z));
 		float accInZ = change.z / (Mathf.Abs (change.x) + Mathf.Abs (change.z));
-		
+
+
 		if (float.IsNaN (accInX)) {
 			accInX = 0;
 		}
@@ -144,8 +144,8 @@ public class T4Agent2 {
 			accInZ = 0;
 		}
 
-			dynPVel.x = dynPVel.x + acceleration * accInX * Time.deltaTime;
-			dynPVel.z = dynPVel.z + acceleration * accInZ * Time.deltaTime;
+			dynPVel.x = dynPVel.x + acceleration * accInX ;
+			dynPVel.z = dynPVel.z + acceleration * accInZ ;
 		
 
 		return dynPVel;

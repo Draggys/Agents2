@@ -61,6 +61,12 @@ public class T4DynamicPoint : MonoBehaviour {
 		for (int i=0; i<atGoal.Length; i++)
 						atGoal [i] = false;
 		float timeBefore = Time.time;
+
+		Vector3[] moves = new Vector3[agents.Count];
+		for (int i=0; i<agents.Count; i++) {
+			moves[i]=new Vector3(0,0,0);
+				}
+
 		while (true) {
 
 			//Check if all agents at goal
@@ -106,12 +112,27 @@ public class T4DynamicPoint : MonoBehaviour {
 					
 				//Update the velocity vector
 				curAgent.velocity=newVel;
-					
-				curAgent.agent.transform.position = curAgent.agent.transform.position + newVel;
-					
-				
 
 
+				//Vector3 test2=newVel*Time.deltaTime;
+				//Debug.Log("NewVel:"+test2);
+				//Debug.Log("x:"+test2.x);
+				//Debug.Log("y:"+test2.y);
+				//Debug.Log("z:"+test2.z);
+
+				//Debug.Log("PosBefore:"+curAgent.agent.transform.position.x);
+
+				//Vector3 newPosition=curAgent.agent.transform.position+test2;
+
+				//Debug.Log("Pos*move:"+newPosition);
+
+				Vector3 curPos=curAgent.agent.transform.position;
+
+				Vector3 moveTowards=curPos+newVel;
+				float step=newVel.magnitude*Time.deltaTime;
+				//Debug.Log("Step:"+step);
+				curAgent.agent.transform.position = Vector3.MoveTowards(curPos,moveTowards,step);
+				//curAgent.agent.transform.position = curAgent.agent.transform.position + newVel*Time.deltaTime;
 
 
 				/*
