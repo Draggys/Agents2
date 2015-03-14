@@ -34,8 +34,14 @@ public class VirtualStructure : MonoBehaviour {
 		start.Add (new Vector3 (0, 1, -100));
 
         VirtualStructure vs = new VirtualStructure (start, agents);
+
+		this.agents = vs.agents; // debug
+
 		StartCoroutine (MoveStructure(vs));
 		StartCoroutine (UpdateStructurePos (vs));
+
+
+
 	}
 
 	public VirtualStructure(List<Vector3> wp, List<PolyAgent> agents) {
@@ -82,20 +88,23 @@ public class VirtualStructure : MonoBehaviour {
     }
     
 	IEnumerator UpdateStructurePos(VirtualStructure vs) {
+		bool first = true;
 		while (true) {
 			vs.UpdatePos ();
 			pos = vs.pos;
 
 			int j = 0;
 			foreach(PolyAgent agent in vs.agents) {
-					if(agent.running)
-						agent.model.StopCoroutineMove();
-					List<Vector3> path = new List<Vector3> ();
-					path.Add (vs.pos[j]);
-					agent.model.SetPath (path, agent, new List<Line> ());
-                    agent.model.StartCoroutineMove();
+			//	if(agent.running)
+			//	agent.model.StopCoroutineMove();
+				List<Vector3> path = new List<Vector3> ();
+				path.Add (vs.pos[j]);
+				agent.end = path[0];
+				agent.model.SetPath (path, agent, new List<Line> ());
+				agent.model.StartCoroutineMove();
                 j++;
-            }
+			}
+            first = false;
             yield return new WaitForSeconds (updateSpeed);
 		}
 	}
@@ -119,7 +128,13 @@ public class VirtualStructure : MonoBehaviour {
 		if (pos != null) {
 			Gizmos.color = Color.red;
 			foreach(Vector3 p in pos) {
-				Gizmos.DrawSphere (p, 1);
+		//		Gizmos.DrawSphere (p, 1);
+			}
+		}
+		if (agents != null) {
+			Gizmos.color = Color.blue;
+			foreach(PolyAgent p in agents) {
+		//		Gizmos.DrawLine (p.agent.transform.position, p.end);
 			}
 		}
 	}
