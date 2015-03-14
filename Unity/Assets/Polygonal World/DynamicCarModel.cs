@@ -33,7 +33,12 @@ public class DynamicCarModel : MonoBehaviour, Model {
 		StartCoroutine ("Move");
 		agent.running = true;
 	}
-	
+
+	public void StopCoroutineMove() {
+		StopCoroutine ("Move");
+		agent.running = false;
+    }
+    
 	float DegToRad(float degree){
 		return (Mathf.PI * degree) / 180;
 	}

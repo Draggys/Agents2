@@ -34,6 +34,11 @@ public class DynamicPointModel : MonoBehaviour, Model {
 		agent.running = true;
 	}
 
+	public void StopCoroutineMove() {
+		StopCoroutine ("Move");
+		agent.running = false;
+    }
+    
 	Vector3 d_dir;
 	public IEnumerator Move() {
 		int index = 0;
