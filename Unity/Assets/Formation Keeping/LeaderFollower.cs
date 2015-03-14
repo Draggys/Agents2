@@ -2,9 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 
-//TODO: fix: 5 children are spawn #4 and #5 follows the same point!
-// Change: Only right leader (and first) has two children
-// 		   All other leaders have one left child
 public class LeaderFollower : MonoBehaviour{
 	public List<LeaderFollower> children;
 	LeaderFollower parent = null;
@@ -14,6 +11,9 @@ public class LeaderFollower : MonoBehaviour{
 	public static int totChildren = 5;
 	public static int dist = 10; // How close to their leader they want to be
 	public bool empty = true;
+	bool doubleChild = false;
+
+	string modelType = "car";
 
 	void Start() {
 		List<Vector3> start = new List<Vector3> ();
@@ -27,6 +27,7 @@ public class LeaderFollower : MonoBehaviour{
 			models.Add (gameObject.AddComponent<DynamicCarModel> ());
 		
 		LeaderFollower leader = new LeaderFollower ("leader", Vector3.zero, null, start);
+		leader.doubleChild = true;
 		leader.CreateChildren (models);
 		leader.SetModel (gameObject.AddComponent<DynamicCarModel> ());
 	//	leader.MoveLeader ();
@@ -46,7 +47,7 @@ public class LeaderFollower : MonoBehaviour{
             debugwp.Clear ();
 
 			if(Vector3.Distance (leader.agent.agent.transform.position, leader.leaderWP[leader.leaderWP.Count-1]) < 4)
-				yield break;
+				leader.MoveLeader();
 		}
     }
 
@@ -64,17 +65,17 @@ public class LeaderFollower : MonoBehaviour{
 			Vector3 parentPos = v.agent.agent.transform.position;
             
             for(int i = 0; i < v.children.Count; i++) {
+				if(!v.doubleChild && i == 1) 
+					break;
 				if(v.children[i] == null) {
 					if(totChildren > 0) {
 						Vector3 startPos = Vector3.zero;
-						/*if(i == 0)
-							startPos = parentPos + Vector3.back * dist + Vector3.left * dist;
-						else if(i == 1)
-							startPos = parentPos + Vector3.back * dist + Vector3.right * dist;
-                        */
+
                         v.children[i] = new LeaderFollower("child " + numChildren++, startPos, v);
 						v.children[i].SetModel(model[index++]);
 						v.children[i].empty = false;
+						if(i == 1)
+							v.children[i].doubleChild = true;
 						totChildren--;
 						Q.Enqueue(v.children[i]);
 					}
@@ -90,7 +91,7 @@ public class LeaderFollower : MonoBehaviour{
 
 	public LeaderFollower(string agentId, Vector3 agentPos, 
 	                      LeaderFollower parent, List<Vector3> wp = null) {
-		agent = new PolyAgent (agentId, agentPos, Vector3.zero, 5, "car");
+		agent = new PolyAgent (agentId, agentPos, Vector3.zero, 5, modelType);
 		agent.agent.renderer.material.color = Color.black;
 		leaderWP = wp;
 		children = new List<LeaderFollower>();
