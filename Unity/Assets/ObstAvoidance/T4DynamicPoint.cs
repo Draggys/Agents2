@@ -102,29 +102,15 @@ public class T4DynamicPoint : MonoBehaviour {
 				}
 			
 
+
+
+
 				//The code below is used for the 2nd solution of T4
 
 				Vector3 newVel=curAgent.findMinimumPenaltyVel(agents,accMax,current,goalInterval);
 
-				//Debug.Log("newVel:"+newVel);
-
-				//Debug.Log("DynPVel="+dynPVel);
-					
 				//Update the velocity vector
 				curAgent.velocity=newVel;
-
-
-				//Vector3 test2=newVel*Time.deltaTime;
-				//Debug.Log("NewVel:"+test2);
-				//Debug.Log("x:"+test2.x);
-				//Debug.Log("y:"+test2.y);
-				//Debug.Log("z:"+test2.z);
-
-				//Debug.Log("PosBefore:"+curAgent.agent.transform.position.x);
-
-				//Vector3 newPosition=curAgent.agent.transform.position+test2;
-
-				//Debug.Log("Pos*move:"+newPosition);
 
 				Vector3 curPos=curAgent.agent.transform.position;
 
@@ -135,8 +121,9 @@ public class T4DynamicPoint : MonoBehaviour {
 				//curAgent.agent.transform.position = curAgent.agent.transform.position + newVel*Time.deltaTime;
 
 
+
 				/*
-				 * BELOW IS USED FOR THE FIRST SOLUTION OF T4
+				 // BELOW IS USED FOR THE FIRST SOLUTION OF T4
 
 				//Check collision
 				Vector3 collisionVec=curAgent.collisionDetection(agents,accMax,current);
