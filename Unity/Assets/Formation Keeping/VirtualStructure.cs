@@ -88,14 +88,12 @@ public class VirtualStructure : MonoBehaviour {
 
 			int j = 0;
 			foreach(PolyAgent agent in vs.agents) {
-				if(Vector3.Distance (agent.agent.transform.position, vs.pos[j]) > 5) {
 					if(agent.running)
 						agent.model.StopCoroutineMove();
 					List<Vector3> path = new List<Vector3> ();
 					path.Add (vs.pos[j]);
 					agent.model.SetPath (path, agent, new List<Line> ());
                     agent.model.StartCoroutineMove();
-                }
                 j++;
             }
             yield return new WaitForSeconds (updateSpeed);
