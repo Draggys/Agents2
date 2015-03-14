@@ -95,8 +95,8 @@ public class VirtualStructure : MonoBehaviour {
 
 			int j = 0;
 			foreach(PolyAgent agent in vs.agents) {
-			//	if(agent.running)
-			//	agent.model.StopCoroutineMove();
+				if(agent.running)
+					agent.model.StopCoroutineMove();
 				List<Vector3> path = new List<Vector3> ();
 				path.Add (vs.pos[j]);
 				agent.end = path[0];
