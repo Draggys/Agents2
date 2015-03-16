@@ -12,6 +12,7 @@ public class T5Agent {
 	public Vector3 velocity;
 	public float agentSize;
 	public float timeStepLimit;
+	public float neighborTimeLimit;
 	
 	private float weightPenalty;
 	
@@ -21,7 +22,7 @@ public class T5Agent {
 		agentSize = 5f;
 		agent = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 		agent.transform.position = start;
-		agent.transform.localScale = new Vector3 (2*agentSize, 2*agentSize, 2*agentSize);
+		agent.transform.localScale = new Vector3 (2*agentSize, 1, 2*agentSize);
 		pos = start;
 		wp = 0;
 		wpReached = false;
@@ -29,10 +30,20 @@ public class T5Agent {
 
 		timeStepLimit =100f;
 		
-		weightPenalty = 1f;
+		weightPenalty = 10f;
+
+		neighborTimeLimit = 5f;
+
 	}
 	
-	
+
+	public bool isAtGoal(float goalInterval){
+		float distToGoal = Vector3.Distance (this.agent.transform.position, this.goalPos);
+		if (distToGoal < goalInterval)
+						return true;
+		return false;
+		}
+
 	
 	
 	/*
@@ -198,7 +209,8 @@ public class T5Agent {
 			float distToIntersect=distAlongRay-distInside;
 			
 			float timeToIntersect=distToIntersect/relativeVel.magnitude;
-			
+			//Debug.Log("Relative Vel magnitude:"+relativeVel.magnitude);
+
 			//Debug.Log ("Line cut circle");
 			return timeToIntersect;
 		} 
@@ -216,7 +228,7 @@ public class T5Agent {
 			T5Agent curAgent=agents[i];
 			if(!string.Equals(this.id,curAgent.id)){
 				float timeToCollision = this.findIntersectionPoint (newVelocity, curAgent);
-				if(timeToCollision<minTimeToCollision){
+				if(timeToCollision<minTimeToCollision && timeToCollision<neighborTimeLimit){
 					minTimeToCollision=timeToCollision;
 				}
 			}
