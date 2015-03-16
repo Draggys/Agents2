@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 public class Agent {
 	public Node pos;
@@ -23,7 +24,7 @@ public class Agent {
 }
 
 public class DiscreteMovement : MonoBehaviour {
-	
+	Stopwatch stopwatch = new Stopwatch();
 	int ready;
 	int readyS = 0;
 	
@@ -50,7 +51,7 @@ public class DiscreteMovement : MonoBehaviour {
 			agents [i].agent.renderer.material.color = Color.blue;
 
 		}
-
+		stopwatch.Start();
 		ready = agents.Count;
 
 		/*
@@ -93,15 +94,28 @@ public class DiscreteMovement : MonoBehaviour {
 			
 			ready = 0;
 			int index = readyS;	
-			for(int i = 0; i < agents.Count; i++) {
-				StartCoroutine (Move (agents[index], GreedyNext (agents[index])));
+			for (int i = 0; i < agents.Count; i++) {
+				StartCoroutine (Move (agents [index], GreedyNext (agents [index])));
 				index = (index + 1) % agents.Count;
 			}
 			
-			if(priority++ == 3 || agents[index].pos == agents[index].waypoints[agents[index].wp]) {
+			if (priority++ == 3 || agents [index].pos == agents [index].waypoints [agents [index].wp]) {
 				readyS = (readyS + 1) % agents.Count;
 				priority = 0;
 			}
+		}
+		bool done = true;
+		for (int i = 0; i < agents.Count; i++) {
+			Vector2 end = grid.mapData.end[i];
+			Node node = grid.grid[(int)end[0], (int)end[1]];
+			if(agents[i].pos != node) {
+				done = false;
+				break;
+			}
+		}
+		if (done && agents.Count > 0) {
+			stopwatch.Stop ();
+			print ("Time elapsed: " + stopwatch.Elapsed);
 		}
 		
 		foreach (Agent agent in agents) {
@@ -141,11 +155,11 @@ public class DiscreteMovement : MonoBehaviour {
 		
 		pathInfo = RequestPath (start, end);
 		
-		
+		/*
 		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
 		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
 		       " and success: " + pathInfo.reachedDestination + " status: " + pathInfo.status);
-		
+		*/
 		
 		int i = 1;
 		//Node pos = pathInfo.path[pathInfo.path.Count - 1];

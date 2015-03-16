@@ -1,0 +1,8 @@
+p6 (discobst1 t1): 9.3 sec
+p7 (discobst1 t2): 7.9 sec
+p8 (discobst2 t1: 16.8 sec
+p9 (discobst2 t2): 18.7 sec
+
+Better times can be achieved by tailoring
+depth and heuristic to each test case, 
+instead of using the same for all.

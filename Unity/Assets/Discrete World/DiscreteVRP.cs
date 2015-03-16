@@ -2,9 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 public class DiscreteVRP : MonoBehaviour {
-	
+	Stopwatch stopwatch = new Stopwatch();
 	int ready;
 	int readyS = 0;
 	
@@ -20,37 +21,6 @@ public class DiscreteVRP : MonoBehaviour {
 		grid = GameObject.FindGameObjectWithTag ("Grid").GetComponent<Grid> ();
 		
 		astar = new AStar (grid.rTable);
-//		Node startNode = grid.grid [Convert.ToInt32(grid.mapData.start.x), Convert.ToInt32 (grid.mapData.start.y)];
-//		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
-
-		/*
-		List<Node> w1 = new List<Node> ();
-		w1.Add (grid.grid [19, 9]);
-		w1.Add (grid.grid [0, 9]);
-		agents.Add (new Agent("Red", grid.grid[0, 9], w1));
-		//agents.Add (new Agent("Red", grid.grid[8, 9], w1));
-		agents [0].agent.renderer.material.color = Color.red;
-		
-		
-		List<Node> w2 = new List<Node> ();
-		w2.Add (grid.grid [0, 9]);
-		w2.Add (grid.grid [19, 9]);
-		agents.Add (new Agent ("Magenta", grid.grid[19, 9], w2));
-		agents [1].agent.renderer.material.color = Color.magenta;
-		
-		
-		List<Node> w3 = new List<Node> ();
-		w3.Add (grid.grid [19, 8]);
-		w3.Add (grid.grid [0, 8]);
-		agents.Add (new Agent ("Yellow", grid.grid[1, 9], w3));
-		agents [2].agent.renderer.material.color = Color.yellow;
-		
-		List<Node> w4 = new List<Node> ();
-		w4.Add (grid.grid [9, 9]);
-		agents.Add (new Agent ("Black", grid.grid[9, 9], w4));
-		agents [3].agent.renderer.material.color = Color.black;
-		*/
-
 		endPos = new Dictionary<Agent, Node> ();
 		for(int i = 0; i < grid.mapData.start.Count; i++) {
 			Vector2 pos = grid.mapData.start[i];
@@ -73,69 +43,8 @@ public class DiscreteVRP : MonoBehaviour {
 
 		vrp = new VRPD (customers, agents.Count);
 		ready = agents.Count;
-		/*
-		List<Node> customers = new List<Node> ();
-		customers.Add (grid.grid[19, 19]);
-		customers.Add (grid.grid[1, 19]);
-		customers.Add (grid.grid[1, 1]);
-		customers.Add (grid.grid[10,10]);
-		customers.Add (grid.grid[19,1]);
-		customers.Add (grid.grid[5, 1]);
-
-		agents.Add (new Agent("Red", grid.grid[0, 9], new List<Node> ()));
-		agents [0].agent.renderer.material.color = Color.red;
-		
-		agents.Add (new Agent("Blue", grid.grid[19, 19], new List<Node> ()));
-		agents [1].agent.renderer.material.color = Color.blue;
-
-		agents.Add (new Agent ("Yellow", grid.grid[1, 9], new List<Node> ()));
-		agents [2].agent.renderer.material.color = Color.yellow;
-
-		agents.Add (new Agent ("Black", grid.grid[9, 9], new List<Node> ()));
-		agents [3].agent.renderer.material.color = Color.black;
-
-		endPos = new Dictionary<Agent, Node> ();
-		endPos [agents [0]] = grid.grid [15, 15];
-		endPos [agents [1]] = grid.grid [1, 1];
-		endPos [agents [2]] = grid.grid [1, 9];
-		endPos [agents [3]] = grid.grid [9, 9];
-
-		vrp = new VRPD (customers);
-		
-		ready = agents.Count;
-		*/
+		stopwatch.Start();
 	}
-/*	
-	int priority = 0;
-	void Update() {
-		if (ready == agents.Count && agents.Count > 0) {
-			
-			State state;
-			
-			ready = 0;
-			int index = readyS;	
-			for(int i = 0; i < agents.Count; i++) {
-				StartCoroutine (Move (agents[index], GreedyNext (agents[index])));
-				index = (index + 1) % agents.Count;
-			}
-			
-			if(priority++ == 3){ //|| agents[index].pos == agents[index].waypoints[agents[index].wp]) {
-				readyS = (readyS + 1) % agents.Count;
-				priority = 0;
-			}
-		}
-		
-		foreach (Agent agent in agents) {
-			foreach(Agent agent2 in agents) {
-				if(agent != agent2) {
-					if(agent.pos == agent2.pos) {
-						print ("!HEAD TO HEAD COLLISION! between: \n" + agent.id + " and " + agent2.id);
-					}
-				}
-			}
-		}
-	}
-*/
 	void Update() {
 		if (ready == agents.Count && agents.Count > 0) {
 			ready = 0;
@@ -167,6 +76,19 @@ public class DiscreteVRP : MonoBehaviour {
 				reachedAgents.Remove (an.Key);
 			}
 		}
+		bool done = true;
+		for (int i = 0; i < agents.Count; i++) {
+			Vector2 end = grid.mapData.end[i];
+			Node node = grid.grid[(int)end[0], (int)end[1]];
+			if(agents[i].pos != node) {
+				done = false;
+				break;
+			}
+		}
+		if (done && agents.Count > 0) {
+			stopwatch.Stop ();
+			print ("Time elapsed: " + stopwatch.Elapsed);
+		}
 	}
 	
 	public PathInfo RequestPath(Node startNode, Node endNode) {
@@ -194,11 +116,11 @@ public class DiscreteVRP : MonoBehaviour {
 		
 		pathInfo = RequestPath (start, end);
 		
-		
+	/*	
 		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
 		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
 		       " and success: " + pathInfo.reachedDestination + " status: " + pathInfo.status);
-		
+	*/	
 		
 		int i = 1;
 		//Node pos = pathInfo.path[pathInfo.path.Count - 1];
