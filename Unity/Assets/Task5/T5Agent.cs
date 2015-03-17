@@ -13,10 +13,11 @@ public class T5Agent {
 	public float agentSize;
 	public float timeStepLimit;
 	public float neighborTimeLimit;
+	private int priority;
 	
 	private float weightPenalty;
 	
-	public T5Agent(string id, Vector3 start, Vector3 goalPos) {
+	public T5Agent(string id, Vector3 start, Vector3 goalPos, int priority) {
 		this.goalPos = goalPos;
 		this.id = id;
 		agentSize = 5f;
@@ -27,6 +28,7 @@ public class T5Agent {
 		wp = 0;
 		wpReached = false;
 		velocity = new Vector3 (0,0,0);
+		this.priority = priority;
 
 		timeStepLimit =100f;
 		
@@ -219,6 +221,20 @@ public class T5Agent {
 		}
 
 	}
+
+	/**
+	 * Check if the agent will get to the goal before it collides 
+	 */
+	private bool goalBeforeCollision(T5Agent otherAgent){
+
+		float distToGoal = Vector3.Distance (this.agent.transform.position, this.goalPos);
+		float distToOther = Vector3.Distance (this.agent.transform.position, otherAgent.agent.transform.position);
+
+		if (Vector3.Equals (otherAgent.velocity, Vector3.zero) && distToGoal < distToOther) {
+			return true;
+				}
+		return false;
+		}
 	
 	public float calculateTimeToCollision(Vector3 newVelocity, List<T5Agent> agents){
 		
@@ -226,7 +242,8 @@ public class T5Agent {
 		
 		for (int i=0; i<agents.Count; i++) {
 			T5Agent curAgent=agents[i];
-			if(!string.Equals(this.id,curAgent.id)){
+			if(!string.Equals(this.id,curAgent.id) && this.priority<=curAgent.priority
+			   && !this.goalBeforeCollision(curAgent)){
 				float timeToCollision = this.findIntersectionPoint (newVelocity, curAgent);
 				if(timeToCollision<minTimeToCollision && timeToCollision<neighborTimeLimit){
 					minTimeToCollision=timeToCollision;

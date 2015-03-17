@@ -35,6 +35,9 @@ public class T5DynamicPoint : MonoBehaviour {
 		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button");
 		
+		polyData = map.polyData;
+		graph = new VGraph();
+		walkableLines = new List<Line> ();
 
 		//Create visibility graph
 		CreateObstacles ();
@@ -59,7 +62,7 @@ public class T5DynamicPoint : MonoBehaviour {
 		for (int i=0; i<map.polyData.start.Count; i=i+1) {
 			Vector3 startNode=map.polyData.start[i];
 			Vector3 endNode=map.polyData.end[i];
-			T5Agent newAgent=new T5Agent("Agent "+agentCounter, startNode, endNode);
+			T5Agent newAgent=new T5Agent("Agent "+agentCounter, startNode, endNode, agentCounter);
 			newAgent.agent.gameObject.renderer.material.color=agentColors[i];
 			List<PolyNode> ppath = pathFinder.AStarSearch (startNode, endNode, graph);
 			List<Vector3> temp = new List<Vector3> ();
