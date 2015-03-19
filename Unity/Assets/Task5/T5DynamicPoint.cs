@@ -136,8 +136,11 @@ public class T5DynamicPoint : MonoBehaviour {
 
 				bool stuck=curAgent.checkStuck(obstacles,current);
 				if(stuck){
-					this.addPointToGraph(curAgent.agent.transform.position);
-					List<PolyNode> ppath = pathFinder.AStarSearch (curAgent.agent.transform.position, 
+					Vector3 pos=curAgent.agent.transform.position;
+					Vector3 towardsWaypoint=Vector3.Normalize(current-pos);
+					Vector3 edgeOfAgent=pos+towardsWaypoint*curAgent.agentSize;
+					this.addPointToGraph(edgeOfAgent);
+					List<PolyNode> ppath = pathFinder.AStarSearch (edgeOfAgent, 
 					                                               curAgent.goalPos, graph);
 					List<Vector3> temp = new List<Vector3> ();
 					foreach (PolyNode p in ppath) 
