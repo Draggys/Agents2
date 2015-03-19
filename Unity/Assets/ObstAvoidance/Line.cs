@@ -52,7 +52,7 @@ public class Line {
 			float u=qpr/rsCross;
 
 			//Meet if 0<=t<=1 and 0<=u<=1
-			if((t>=0 && t<=1) && (u>=0 && u<=1)){
+			if((t>0 && t<1) && (u>0 && u<1)){
 				return true;
 			}
 			else{

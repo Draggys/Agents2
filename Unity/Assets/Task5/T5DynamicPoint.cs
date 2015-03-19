@@ -68,7 +68,7 @@ public class T5DynamicPoint : MonoBehaviour {
 			List<Vector3> temp = new List<Vector3> ();
 			foreach (PolyNode p in ppath) 
 				temp.Add (p.pos);
-			temp.Add(endNode);
+			//temp.Add(endNode);
 			paths[i]=temp;
 			agentAtWaypoint[i]=0;
 			agents.Add(newAgent);
@@ -113,6 +113,7 @@ public class T5DynamicPoint : MonoBehaviour {
 
 				//If the current agent is at it's goal it should not move anymore
 				if(curAgent.isAtGoal(goalInterval)){
+					curAgent.velocity=Vector3.zero;
 					continue;
 				}
 
@@ -120,9 +121,34 @@ public class T5DynamicPoint : MonoBehaviour {
 					curAgentAtWaypoint++;
 					agentAtWaypoint[i]=curAgentAtWaypoint;
 					if(curAgentAtWaypoint>=curPath.Count){
+						curAgent.velocity=Vector3.zero;
 						continue;
 					}
 					current=curPath[curAgentAtWaypoint];
+				}
+
+				bool straightToGoal=curAgent.checkStraightWayToGoal(obstacles);
+				if(straightToGoal){
+					current=curAgent.goalPos;
+					curAgentAtWaypoint=curPath.Count-1;
+					agentAtWaypoint[i]=curAgentAtWaypoint;
+				}
+
+				bool stuck=curAgent.checkStuck(obstacles,current);
+				if(stuck){
+					this.addPointToGraph(curAgent.agent.transform.position);
+					List<PolyNode> ppath = pathFinder.AStarSearch (curAgent.agent.transform.position, 
+					                                               curAgent.goalPos, graph);
+					List<Vector3> temp = new List<Vector3> ();
+					foreach (PolyNode p in ppath) 
+						temp.Add (p.pos);
+
+					curPath=temp;
+					paths[i]=curPath;
+					curAgentAtWaypoint=0;
+					agentAtWaypoint[i]=0;
+					current=curPath[curAgentAtWaypoint];
+
 				}
 
 				//Vector3 current=curAgent.goalPos;
@@ -133,7 +159,7 @@ public class T5DynamicPoint : MonoBehaviour {
 				
 				//The code below is used for the 2nd solution of T4
 				
-				Vector3 newVel=curAgent.findMinimumPenaltyVel(agents,accMax,current,goalInterval);
+				Vector3 newVel=curAgent.findMinimumPenaltyVel(agents,accMax,current,goalInterval,obstacles);
 				
 				//Update the velocity vector
 				curAgent.velocity=newVel;
@@ -259,7 +285,35 @@ public class T5DynamicPoint : MonoBehaviour {
 		return false;
 	}
 
+	private void addPointToGraph(Vector3 newPoint){
 
+		Obstacle obs = new Obstacle();
+		obs.id = 1000;
+		obs.vertices.Add (newPoint);
+
+		foreach (Obstacle neigh in obstacles) {
+			if(obs != neigh) {
+				foreach(Vector3 vertex in obs.vertices) {
+					PolyNode currentNode = new PolyNode();
+					currentNode.pos = vertex;
+					foreach(Vector3 neighVertex in neigh.vertices) {
+						Line potentialLine = new Line(vertex, neighVertex);
+						if(!IntersectsWithAnyLine(potentialLine)){
+							walkableLines.Add (potentialLine); //debugging
+							
+							currentNode.neighbours.Add (neighVertex);
+						}
+					}
+					if(graph.graph.ContainsKey (vertex)) 
+						graph.graph[vertex].neighbours.AddRange (currentNode.neighbours);
+					else
+						graph.graph[vertex] = currentNode;
+				}
+			}
+		}
+
+
+		}
 
 	void OnDrawGizmos() {
 		

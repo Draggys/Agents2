@@ -53,7 +53,8 @@ public class T5Agent {
 	 * velocity and then sample N velocities among the velocities possible to reach within one timestep
 	 * 
 	 */
-	public Vector3 findMinimumPenaltyVel(List<T5Agent> agents, float acceleration, Vector3 goalPos, float goalInterval){
+	public Vector3 findMinimumPenaltyVel(List<T5Agent> agents, float acceleration, Vector3 goalPos, 
+	                                     float goalInterval, List<Obstacle> obstacles){
 		
 		//Test to check collisions
 		for (int i=0; i<agents.Count; i++) {
@@ -88,7 +89,11 @@ public class T5Agent {
 		float minPen = float.PositiveInfinity;
 		
 		//First check the penalty of staying at the same velocity (no acceleration)
-		float timeToCollision = this.calculateTimeToCollision (this.velocity, agents);
+		float timeToCollision = this.calculateTimeToCollision (this.velocity, agents, goalInterval,goalPos);
+		float colWithObstTime = this.calculateTimeToColWithObstacle (obstacles, this.velocity);
+		if (colWithObstTime < timeToCollision) {
+			timeToCollision=colWithObstTime;
+				}
 		if (!float.IsPositiveInfinity (timeToCollision)) {
 			//Debug.Log ("TimeToCol:" + timeToCollision);
 		}
@@ -110,7 +115,11 @@ public class T5Agent {
 			accelerationDir.x=Mathf.Cos(changeAng);
 			accelerationDir.z=Mathf.Sin(changeAng);
 			Vector3 newVel=this.calculateNewVelocity(acceleration,accelerationDir);
-			timeToCollision=this.calculateTimeToCollision(newVel,agents);
+			timeToCollision=this.calculateTimeToCollision(newVel,agents,goalInterval,goalPos);
+			colWithObstTime = this.calculateTimeToColWithObstacle (obstacles, newVel);
+			if (colWithObstTime < timeToCollision) {
+				timeToCollision=colWithObstTime;
+			}
 			if(float.IsPositiveInfinity(timeToCollision)){
 				foundOneWithoutCol=true;
 			}
@@ -132,7 +141,37 @@ public class T5Agent {
 		return minPenVel;
 		
 	}
-	
+
+	//Checking if there is no straight line to the next waypoint
+	public bool checkStuck(List<Obstacle> obstacles, Vector3 nextWaypoint){
+
+		Line travelLine = new Line (this.agent.transform.position, nextWaypoint);
+
+		foreach (Obstacle obs in obstacles) {
+			foreach(Line line in obs.edges) {
+				if(line.intersect(travelLine)){
+					return true;
+				}
+			}
+		}
+		return false;
+		}
+
+	public bool checkStraightWayToGoal(List<Obstacle> obstacles){
+
+		Line travelLine = new Line (this.agent.transform.position, this.goalPos);
+
+		foreach (Obstacle obs in obstacles) {
+			foreach(Line line in obs.edges) {
+				if(line.intersect(travelLine)){
+					return false;
+				}
+			}
+		}
+		return true;
+
+		}
+
 	public Vector3 calculateNewVelocity(float acceleration, Vector3 accelerateTowards){
 		
 		Vector3 dir;
@@ -225,28 +264,38 @@ public class T5Agent {
 	/**
 	 * Check if the agent will get to the goal before it collides 
 	 */
-	private bool goalBeforeCollision(T5Agent otherAgent){
+	private bool goalBeforeCollision(T5Agent otherAgent, Vector3 waypoint){
 
-		float distToGoal = Vector3.Distance (this.agent.transform.position, this.goalPos);
+		float distToGoal = Vector3.Distance (this.agent.transform.position, waypoint);
 		float distToOther = Vector3.Distance (this.agent.transform.position, otherAgent.agent.transform.position);
 
 		if (Vector3.Equals (otherAgent.velocity, Vector3.zero) && distToGoal < distToOther) {
+			//Debug.Log("GoalBeforeCol true");
 			return true;
 				}
 		return false;
 		}
 	
-	public float calculateTimeToCollision(Vector3 newVelocity, List<T5Agent> agents){
+	public float calculateTimeToCollision(Vector3 newVelocity, List<T5Agent> agents, float goalInterval, Vector3 waypoint){
 		
 		float minTimeToCollision = float.PositiveInfinity;
 		
 		for (int i=0; i<agents.Count; i++) {
 			T5Agent curAgent=agents[i];
-			if(!string.Equals(this.id,curAgent.id) && this.priority<=curAgent.priority
-			   && !this.goalBeforeCollision(curAgent)){
-				float timeToCollision = this.findIntersectionPoint (newVelocity, curAgent);
-				if(timeToCollision<minTimeToCollision && timeToCollision<neighborTimeLimit){
-					minTimeToCollision=timeToCollision;
+			if(!string.Equals(this.id,curAgent.id) && !this.goalBeforeCollision(curAgent,waypoint)){
+				if(!curAgent.isAtGoal(goalInterval)){
+					if(this.priority<=curAgent.priority){
+						float timeToCollision = this.findIntersectionPoint (newVelocity, curAgent);
+						if(timeToCollision<minTimeToCollision && timeToCollision<neighborTimeLimit){
+							minTimeToCollision=timeToCollision;
+						}
+					}
+				}
+				else{
+					float timeToCollision = this.findIntersectionPoint (newVelocity, curAgent);
+					if(timeToCollision<minTimeToCollision && timeToCollision<neighborTimeLimit){
+						minTimeToCollision=timeToCollision;
+					}
 				}
 			}
 		}
@@ -274,7 +323,25 @@ public class T5Agent {
 		
 	}
 	
-	
+
+	private float calculateTimeToColWithObstacle(List<Obstacle> obstacles, Vector3 newVelocity){
+
+		Vector3 lineStart = this.agent.transform.position;
+		Vector3 lineEnd = lineStart + timeStepLimit * newVelocity;
+		Line velLine = new Line (lineStart, lineEnd);
+
+		float timeToCol = float.PositiveInfinity;
+
+		foreach (Obstacle obs in obstacles) {
+			foreach(Line line in obs.edges) {
+				float tempTime=line.intersectTime(velLine);
+				if(tempTime<timeToCol){
+					timeToCol=tempTime;
+				}
+			}
+		}
+		return timeToCol;
+	}
 	
 	
 }
