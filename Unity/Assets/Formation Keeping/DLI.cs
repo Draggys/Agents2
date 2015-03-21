@@ -9,11 +9,12 @@ public class DLI : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		agents = new List<PolyAgent> ();
-		int numAgents = 4;
+		int numAgents = 10;
 		int R = 5;
 		Vector3 pos = new Vector3(1, 1, 1);
 		for(int i = 0; i < numAgents; i++) {
-			pos = pos + Vector3.one * 20;
+			pos = new Vector3(Random.Range(-300.0F, 300.0F), 1, Random.Range(-300.0F, 300.0F));
+			//pos = new Vector3(Random.Range(-50.0F, 50.0F), 1, Random.Range(-50.0F, 50.0F));
 			pos.y = 1;
 			agents.Add (new PolyAgent(i + "", pos, pos, R, "car"));
 			agents [i].agent.renderer.material.color = Color.yellow;
@@ -21,12 +22,14 @@ public class DLI : MonoBehaviour {
 			//agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
 		}
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 
 		if (agents != null) {
 			foreach (PolyAgent agent in agents) {
+				if(agent.running)
+					agent.model.StopCoroutineMove();
 				if (!agent.running) {
 					List<Vector3> path = new List<Vector3> ();
 					Vector3 pos = GetNewPos (agent);
@@ -41,14 +44,14 @@ public class DLI : MonoBehaviour {
 	}
 
 	Vector3 Cohesion(PolyAgent me) {
-		Vector3 avg = Vector3.zero;
+		Vector3 avg = me.agent.transform.position;
 		foreach(PolyAgent agent in agents) {
 			if(agent != me) {
 				avg = avg + agent.agent.transform.position;
 			}
 		}
-		avg = avg / (agents.Count - 1);
-		return (avg - me.agent.transform.position) / 100; // moves 1% towards centre
+		avg = avg / (agents.Count - 2);
+		return (avg - me.agent.transform.position);
 	}
 
 	Vector3 Separation(PolyAgent me) {
@@ -61,7 +64,7 @@ public class DLI : MonoBehaviour {
 				}
 			}
 		}
-		return c;
+		return c*5;
 	}
 
 	public Vector3 GetNewPos(PolyAgent me) {
