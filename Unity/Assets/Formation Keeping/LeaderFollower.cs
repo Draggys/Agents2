@@ -14,7 +14,8 @@ public class LeaderFollower : MonoBehaviour{
 	bool doubleChild = false;
 
 	// Choose model
-	string modelType = "car";
+	string modelType = "point";
+	string moveType = "differential";
 
 	void Start() {
 		List<Vector3> start = new List<Vector3> ();
@@ -26,11 +27,18 @@ public class LeaderFollower : MonoBehaviour{
 		List<Model> models = new List<Model> ();
 		for (int i = 0; i < totChildren; i++) {
 			if(modelType == "car") {
-				//models.Add (gameObject.AddComponent<DynamicCarModel> ());
-				models.Add (gameObject.AddComponent<KinematicCarModel> ());
+				if(moveType == "dynamic")
+					models.Add (gameObject.AddComponent<DynamicCarModel> ());
+				if(moveType == "kinematic")
+					models.Add (gameObject.AddComponent<KinematicCarModel> ());
 			}
 			if(modelType == "point") {
-				models.Add (gameObject.AddComponent<DynamicPointModel> ());
+				if(moveType == "dynamic")
+					models.Add (gameObject.AddComponent<DynamicPointModel> ());
+				if(moveType == "kinematic")
+					models.Add (gameObject.AddComponent<KinematicPointModel> ());
+				if(moveType == "differential")
+					models.Add (gameObject.AddComponent<DifferentialDriveModel> ());
 			}
 		}
 		
@@ -38,16 +46,20 @@ public class LeaderFollower : MonoBehaviour{
 		leader.doubleChild = true;
 		leader.CreateChildren (models);
 		if(modelType == "car") {
-			//leader.SetModel (gameObject.AddComponent<DynamicCarModel> ());
-			leader.SetModel (gameObject.AddComponent<KinematicCarModel> ());
+			if(moveType == "dynamic")
+				leader.SetModel (gameObject.AddComponent<DynamicCarModel> ());
+			if(moveType == "kinematic")
+				leader.SetModel (gameObject.AddComponent<KinematicCarModel> ());
 		}
 		if(modelType == "point") {
-			leader.SetModel (gameObject.AddComponent<DynamicPointModel> ());
-
+			if(moveType == "dynamic")
+				leader.SetModel (gameObject.AddComponent<DynamicPointModel> ());
+			if(moveType == "kinematic")
+				leader.SetModel (gameObject.AddComponent<KinematicPointModel> ());
+			if(moveType == "differential")
+				leader.SetModel (gameObject.AddComponent<DifferentialDriveModel> ());
 		}
-	//	leader.MoveLeader ();
-	//	leader.MoveChildren ();
-		//leader.agent.model.StopCoroutineMove ();
+
 		leader.MoveLeader ();
 		StartCoroutine(MoveCoroutine (leader));
 
