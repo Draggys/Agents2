@@ -8,6 +8,10 @@ public class DLI : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		// Choose model
+		string modelType = "car";
+		string moveType = "dynamic";
+
 		agents = new List<PolyAgent> ();
 		int numAgents = 10;
 		int R = 5;
@@ -16,9 +20,27 @@ public class DLI : MonoBehaviour {
 			pos = new Vector3(Random.Range(-300.0F, 300.0F), 1, Random.Range(-300.0F, 300.0F));
 			//pos = new Vector3(Random.Range(-50.0F, 50.0F), 1, Random.Range(-50.0F, 50.0F));
 			pos.y = 1;
-			agents.Add (new PolyAgent(i + "", pos, pos, R, "car"));
+			agents.Add (new PolyAgent(i + "", pos, pos, R, modelType));
 			agents [i].agent.renderer.material.color = Color.yellow;
-			agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
+
+
+			if(modelType == "point") {
+				if(moveType == "dynamic")
+					agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
+				if(moveType == "kinematic")
+					agents[i].model = gameObject.AddComponent<KinematicPointModel> ();
+				if(moveType == "differential")
+					agents[i].model = gameObject.AddComponent<DifferentialDriveModel>();
+			}
+			if(modelType == "car") {
+				if(moveType == "dynamic")
+					agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
+				if(moveType == "kinematic")
+					agents[i].model = gameObject.AddComponent<KinematicCarModel> ();
+			}
+
+
+			//agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
 			//agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
 		}
 	}

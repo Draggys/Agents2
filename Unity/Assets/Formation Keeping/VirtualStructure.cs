@@ -15,17 +15,34 @@ public class VirtualStructure : MonoBehaviour {
 	int numAgents;
 	int R = 3;
 	int updateSpeed;
-	
+
 	void Start () {
+		
+		// Choose model
+		string modelType = "car";
+		string moveType = "dynamic";
+
 		vel = 5;
 		updateSpeed = 1;
 		List<PolyAgent> agents = new List<PolyAgent> ();
 		numAgents = 4;
 		for(int i = 0; i < numAgents; i++) {
-			agents.Add (new PolyAgent(i + "", Vector3.zero, Vector3.zero, R, "car"));
+			agents.Add (new PolyAgent(i + "", Vector3.zero, Vector3.zero, R, modelType));
 			agents [i].agent.renderer.material.color = Color.yellow;
-			agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
-			//agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
+			if(modelType == "point") {
+				if(moveType == "dynamic")
+					agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
+				if(moveType == "kinematic")
+					agents[i].model = gameObject.AddComponent<KinematicPointModel> ();
+				if(moveType == "differential")
+					agents[i].model = gameObject.AddComponent<DifferentialDriveModel>();
+			}
+			if(modelType == "car") {
+				if(moveType == "dynamic")
+					agents[i].model = gameObject.AddComponent<DynamicCarModel> ();
+				if(moveType == "kinematic")
+					agents[i].model = gameObject.AddComponent<KinematicCarModel> ();
+			}
         }
         
 		List<Vector3> start = new List<Vector3> ();

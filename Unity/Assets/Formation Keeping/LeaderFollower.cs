@@ -14,8 +14,8 @@ public class LeaderFollower : MonoBehaviour{
 	bool doubleChild = false;
 
 	// Choose model
-	string modelType = "point";
-	string moveType = "differential";
+	string modelType = "car";
+	string moveType = "dynamic";
 
 	void Start() {
 		List<Vector3> start = new List<Vector3> ();
