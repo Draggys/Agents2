@@ -44,11 +44,14 @@ public class DLI : MonoBehaviour {
 			//agents[i].model = gameObject.AddComponent<DynamicPointModel> ();
 		}
 	}
-
+	
 	// Update is called once per frame
+	Vector3 target = Vector3.zero;
 	void Update () {
-
 		if (agents != null) {
+			if(Vector3.Distance (agents[0].agent.transform.position, target) < 150
+			   || target == Vector3.zero)
+				target = new Vector3(Random.Range(-500.0F, 500.0F), 1, Random.Range(-500.0F, 500.0F));
 			foreach (PolyAgent agent in agents) {
 				if(agent.running)
 					agent.model.StopCoroutineMove();
@@ -56,13 +59,18 @@ public class DLI : MonoBehaviour {
 					List<Vector3> path = new List<Vector3> ();
 					Vector3 pos = GetNewPos (agent);
 					pos.y = 1;
-					path.Add (pos);
+					Vector3 ten = Tendency (agent, target);
+					path.Add (pos + ten);
 					agent.model.SetPath (path, agent, new List<Line> ());
 					agent.model.StartCoroutineMove();
 				}
 			}
 		}
 
+	}
+
+	Vector3 Tendency(PolyAgent me, Vector3 to) {
+		return (to - me.agent.transform.position) / 1;
 	}
 
 	Vector3 Cohesion(PolyAgent me) {
@@ -93,5 +101,10 @@ public class DLI : MonoBehaviour {
 		Vector3 v1 = Cohesion (me);
 		Vector3 v2 = Separation (me);
 		return v1 + v2;
+	}
+
+	void OnDrawGizmos() {
+		Gizmos.color = Color.red;
+		Gizmos.DrawSphere (target, 5);
 	}
 }
