@@ -13,6 +13,7 @@ public class LeaderFollower : MonoBehaviour{
 	public bool empty = true;
 	bool doubleChild = false;
 
+	// Choose model
 	string modelType = "car";
 
 	void Start() {
@@ -23,13 +24,27 @@ public class LeaderFollower : MonoBehaviour{
 		start.Add (new Vector3 (0, 1, -100));
 
 		List<Model> models = new List<Model> ();
-		for(int i = 0; i < totChildren; i++)
-			models.Add (gameObject.AddComponent<DynamicCarModel> ());
+		for (int i = 0; i < totChildren; i++) {
+			if(modelType == "car") {
+				//models.Add (gameObject.AddComponent<DynamicCarModel> ());
+				models.Add (gameObject.AddComponent<KinematicCarModel> ());
+			}
+			if(modelType == "point") {
+				models.Add (gameObject.AddComponent<DynamicPointModel> ());
+			}
+		}
 		
 		LeaderFollower leader = new LeaderFollower ("leader", Vector3.zero, null, start);
 		leader.doubleChild = true;
 		leader.CreateChildren (models);
-		leader.SetModel (gameObject.AddComponent<DynamicCarModel> ());
+		if(modelType == "car") {
+			//leader.SetModel (gameObject.AddComponent<DynamicCarModel> ());
+			leader.SetModel (gameObject.AddComponent<KinematicCarModel> ());
+		}
+		if(modelType == "point") {
+			leader.SetModel (gameObject.AddComponent<DynamicPointModel> ());
+
+		}
 	//	leader.MoveLeader ();
 	//	leader.MoveChildren ();
 		//leader.agent.model.StopCoroutineMove ();
