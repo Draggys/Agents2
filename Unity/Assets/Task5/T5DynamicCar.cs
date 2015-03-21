@@ -2,14 +2,20 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class T5DynamicPoint : MonoBehaviour {
+public class T5DynamicCar : MonoBehaviour {
 	
 	private PolyMapLoader map = null;
 	
 	private List<Vector3> path = null;
 	public float goalInterval;
 	public float accMax;
-	
+
+	public float carLength = 2.64f;
+	public float maxWheelAngle = 57.3f;
+	public float dynF = 10;
+	public float dynMass = 5;
+
+
 	public float xLow;
 	public float xHigh;
 	public float zLow;
@@ -17,15 +23,15 @@ public class T5DynamicPoint : MonoBehaviour {
 	
 	public List<T5Agent> agents;
 	private List<Color> agentColors;
-
-
+	
+	
 	List<Obstacle> obstacles = new List<Obstacle> ();
 	PolyData polyData = null;
 	
 	List<Line> walkableLines;
 	VGraph graph;
 	PolygonalAStar pathFinder = new PolygonalAStar();
-
+	
 	List<Vector3>[] paths;
 	int[] agentAtWaypoint;
 	
@@ -38,12 +44,12 @@ public class T5DynamicPoint : MonoBehaviour {
 		polyData = map.polyData;
 		graph = new VGraph();
 		walkableLines = new List<Line> ();
-
+		
 		//Create visibility graph
 		CreateObstacles ();
 		ConstructWalkableLines ();
 		CreateInterObstacleWalk ();
-
+		
 		
 		agents=new List<T5Agent>();
 		agentColors=new List<Color>();
@@ -52,17 +58,17 @@ public class T5DynamicPoint : MonoBehaviour {
 		agentColors.Add (Color.yellow);
 		agentColors.Add (Color.cyan);
 		agentColors.Add (Color.green);
-
-
+		
+		
 		paths = new List<Vector3>[map.polyData.start.Count];
 		agentAtWaypoint=new int[map.polyData.start.Count];
-
+		
 		int agentCounter = 0;
-
+		
 		for (int i=0; i<map.polyData.start.Count; i=i+1) {
 			Vector3 startNode=map.polyData.start[i];
 			Vector3 endNode=map.polyData.end[i];
-			T5Agent newAgent=new T5Agent("Agent "+agentCounter, startNode, endNode, agentCounter,false);
+			T5Agent newAgent=new T5Agent("Agent "+agentCounter, startNode, endNode, agentCounter,true);
 			newAgent.agent.gameObject.renderer.material.color=agentColors[i];
 			List<PolyNode> ppath = pathFinder.AStarSearch (startNode, endNode, graph);
 			List<Vector3> temp = new List<Vector3> ();
@@ -76,8 +82,8 @@ public class T5DynamicPoint : MonoBehaviour {
 		}
 		
 		Debug.Log ("Agents size:" + agents.Count);
-
-
+		
+		
 		StartCoroutine("Move");
 		
 	}
@@ -105,18 +111,18 @@ public class T5DynamicPoint : MonoBehaviour {
 			}
 			//Iterate all agents
 			for (int i=0; i<agents.Count; i++) {
-
+				
 				List<Vector3> curPath=paths[i];
 				int curAgentAtWaypoint=agentAtWaypoint[i];
 				T5Agent curAgent=agents[i];
 				Vector3 current=curPath[curAgentAtWaypoint];
-
+				
 				//If the current agent is at it's goal it should not move anymore
 				if(curAgent.isAtGoal(goalInterval)){
 					curAgent.velocity=Vector3.zero;
 					continue;
 				}
-
+				
 				if(Vector3.Distance(curAgent.agent.transform.position,current)<goalInterval){
 					curAgentAtWaypoint++;
 					agentAtWaypoint[i]=curAgentAtWaypoint;
@@ -126,14 +132,14 @@ public class T5DynamicPoint : MonoBehaviour {
 					}
 					current=curPath[curAgentAtWaypoint];
 				}
-
+				
 				bool straightToGoal=curAgent.checkStraightWayToGoal(obstacles);
 				if(straightToGoal){
 					current=curAgent.goalPos;
 					curAgentAtWaypoint=curPath.Count-1;
 					agentAtWaypoint[i]=curAgentAtWaypoint;
 				}
-
+				
 				bool stuck=curAgent.checkStuck(obstacles,current);
 				if(stuck){
 					Vector3 pos=curAgent.agent.transform.position;
@@ -145,35 +151,54 @@ public class T5DynamicPoint : MonoBehaviour {
 					List<Vector3> temp = new List<Vector3> ();
 					foreach (PolyNode p in ppath) 
 						temp.Add (p.pos);
-
+					
 					curPath=temp;
 					paths[i]=curPath;
 					curAgentAtWaypoint=0;
 					agentAtWaypoint[i]=0;
 					current=curPath[curAgentAtWaypoint];
-
+					
 				}
-
+				
 				//Vector3 current=curAgent.goalPos;
 				Vector3 dynPVel=curAgent.velocity;
-
-
-
+				
+				
+				
 				
 				//The code below is used for the 2nd solution of T4
 				
-				Vector3 newVel=curAgent.findMinimumPenaltyVel(agents,accMax,current,goalInterval,obstacles);
+				curAgent.findMinimumPenaltyVelCar(agents,accMax,current,goalInterval,obstacles,maxWheelAngle
+				                                  ,carLength);
 				
-				//Update the velocity vector
-				curAgent.velocity=newVel;
+				Vector3 newRot=curAgent.velocity;
+				Vector3 newVel=curAgent.getCarVelocity();
+				float curVel=curAgent.velSize;
 				
 				Vector3 curPos=curAgent.agent.transform.position;
 				
 				Vector3 moveTowards=curPos+newVel;
 				float step=newVel.magnitude*Time.deltaTime;
 				//Debug.Log("Step:"+step);
-				curAgent.agent.transform.position = Vector3.MoveTowards(curPos,moveTowards,step);
-				//curAgent.agent.transform.position = curAgent.agent.transform.position + newVel*Time.deltaTime;
+
+
+				float wheelAngleRad = maxWheelAngle * (Mathf.PI / 180);
+				float dTheta=(curAgent.velSize/carLength)*Mathf.Tan(wheelAngleRad);
+
+				Quaternion newLookRot=Quaternion.Euler(newRot);
+
+				if(curAgent.agent.transform.rotation!=newLookRot){
+					curAgent.agent.transform.rotation = Quaternion.RotateTowards (curAgent.agent.transform.rotation, newLookRot, dTheta);
+				}
+
+				curAgent.velocity=curAgent.agent.transform.rotation.eulerAngles;
+
+				Vector3 curDir=curAgent.agent.transform.eulerAngles;
+				Vector3 newPos=curAgent.agent.transform.position;
+				float angleRad=curDir.y*(Mathf.PI/180);
+				newPos.x=newPos.x+(curVel*Mathf.Sin(angleRad)*Time.deltaTime);
+				newPos.z=newPos.z+(curVel*Mathf.Cos(angleRad)*Time.deltaTime);
+				curAgent.agent.transform.position=newPos;
 
 				
 				yield return null;
@@ -182,8 +207,8 @@ public class T5DynamicPoint : MonoBehaviour {
 		}
 		
 	}
-
-
+	
+	
 	public void CreateInterObstacleWalk() {
 		foreach (Obstacle obs in obstacles) {
 			foreach(Line line in obs.edges) {
@@ -287,13 +312,13 @@ public class T5DynamicPoint : MonoBehaviour {
 		}
 		return false;
 	}
-
+	
 	private void addPointToGraph(Vector3 newPoint){
-
+		
 		Obstacle obs = new Obstacle();
 		obs.id = 1000;
 		obs.vertices.Add (newPoint);
-
+		
 		foreach (Obstacle neigh in obstacles) {
 			if(obs != neigh) {
 				foreach(Vector3 vertex in obs.vertices) {
@@ -314,10 +339,10 @@ public class T5DynamicPoint : MonoBehaviour {
 				}
 			}
 		}
-
-
-		}
-
+		
+		
+	}
+	
 	void OnDrawGizmos() {
 		
 		if (map == null) {
@@ -331,7 +356,7 @@ public class T5DynamicPoint : MonoBehaviour {
 			agentColors.Add (Color.yellow);
 			agentColors.Add (Color.cyan);
 			agentColors.Add (Color.green);
-				}
+		}
 		
 		if (map.polyData.nodes != null) {
 			foreach(Vector3 node in map.polyData.nodes) {
@@ -346,7 +371,7 @@ public class T5DynamicPoint : MonoBehaviour {
 			}
 			
 		}
-
+		
 		for (int i=0; i<map.polyData.start.Count; i=i+1) {
 			Vector3 startNode=map.polyData.start[i];
 			Vector3 endNode=map.polyData.end[i];
@@ -357,14 +382,14 @@ public class T5DynamicPoint : MonoBehaviour {
 			Gizmos.color=agentColors[i];
 			Gizmos.DrawLine(startNode,endNode);
 		}
-
-
+		
+		
 		Gizmos.color = Color.black;
 		Gizmos.DrawLine (new Vector3 (xLow, 1, zLow), new Vector3 (xHigh, 1, zLow));
 		Gizmos.DrawLine (new Vector3 (xHigh, 1, zLow),new Vector3(xHigh,1,zHigh));
 		Gizmos.DrawLine (new Vector3(xHigh,1,zHigh), new Vector3 (xLow, 1, zHigh));
 		Gizmos.DrawLine (new Vector3(xLow,1,zHigh), new Vector3 (xLow, 1, zLow));
-
+		
 	}
 	
 	
