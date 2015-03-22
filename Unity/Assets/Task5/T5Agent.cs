@@ -31,6 +31,11 @@ public class T5Agent
 						agent.transform.localScale = new Vector3 ( agentSize, 1, 2*agentSize);
 						velSize = 0;
 						//In the case of a car the velocity will be the rotation while velSize is the velocity
+						if(goalPos.z<start.z){
+				Vector3 startRot=new Vector3(0,180,0);
+				Quaternion startRotQ=Quaternion.Euler(startRot);
+				agent.transform.rotation=Quaternion.RotateTowards(agent.transform.rotation,startRotQ,9000);
+						}
 						velocity = agent.transform.rotation.eulerAngles;
 				} 
 		//If it's not a car it's a point (sphere)
@@ -47,7 +52,7 @@ public class T5Agent
 
 				this.priority = priority;
 
-				timeStepLimit = 100f;
+				timeStepLimit = 1000f;
 		
 				weightPenalty = 10f;
 
@@ -235,7 +240,8 @@ public class T5Agent
 				float changeAng = -maxTurning;
 				float intervalSize = 2 * Mathf.Abs (maxTurning);
 
-
+		bool foundOneWithoutCol = false;
+		bool noCollisionsDetected = true;
 				//Testing with positive acceleration
 				for (int i=0; i<N; i++) {
 
@@ -243,8 +249,15 @@ public class T5Agent
 						timeToCollision = this.calculateTimeToCollision (newVel, agents, goalInterval, waypoint);
 						colWithObstTime = this.calculateTimeToColWithObstacle (obstacles, newVel, waypoint);
 						if (colWithObstTime < timeToCollision) {
+				//Debug.Log(this.id+" Col with wall before");
 								timeToCollision = colWithObstTime;
 						}
+			if(float.IsPositiveInfinity(timeToCollision)){
+				foundOneWithoutCol=true;
+			}
+			if(!float.IsPositiveInfinity(timeToCollision)){
+				noCollisionsDetected=false;
+			}
 						float penalty = this.calculatePenalty (newVel, timeToCollision, prefVel);
 						if (penalty < minPen) {
 								minPen = penalty;
@@ -267,8 +280,16 @@ public class T5Agent
 						timeToCollision = this.calculateTimeToCollision (newVel, agents, goalInterval, waypoint);
 						colWithObstTime = this.calculateTimeToColWithObstacle (obstacles, newVel, waypoint);
 						if (colWithObstTime < timeToCollision) {
+				//Debug.Log(this.id+" Col with wall before");
+				//Debug.Log(this.id+" col with wall in:"+colWithObstTime);
 								timeToCollision = colWithObstTime;
 						}
+			if(float.IsPositiveInfinity(timeToCollision)){
+				foundOneWithoutCol=true;
+			}
+			if(!float.IsPositiveInfinity(timeToCollision)){
+				noCollisionsDetected=false;
+			}
 						float penalty = this.calculatePenalty (newVel, timeToCollision, prefVel);
 						if (penalty < minPen) {
 								minPen = penalty;
@@ -280,6 +301,12 @@ public class T5Agent
 						changeAng = changeAng + (intervalSize / N);
 				}
 
+		if (!foundOneWithoutCol) {
+			//Debug.Log(this.id+" did not find Vel without col");
+		}
+		if (noCollisionsDetected) {
+			//Debug.Log(this.id+" no collision detected");
+				}
 
 				//Taking the minumum penalty velocity and setting the variables
 				Vector3 newRotation = this.velocity;
@@ -290,6 +317,14 @@ public class T5Agent
 				
 				this.velocity = newRotation;
 				this.velSize = newVelSize;
+
+		//Testing
+		Vector3 tempNewVel = Vector3.Normalize(this.getCarVelocity ());
+		float velDist = Vector3.Distance (tempNewVel, Vector3.Normalize(prefVel));
+		//Debug.Log(this.id+" VelDist:"+velDist);
+		if (velDist == 0) {
+			Debug.Log("VelDist is zero");
+				}
 
 		
 		}
