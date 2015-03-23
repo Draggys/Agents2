@@ -198,7 +198,7 @@ public class T5DynamicCar : MonoBehaviour {
 				bool flag = true;
 				foreach(T5Agent agent in agents) {
 					if(curAgent != agent) {
-						if(Vector3.Distance (curAgent.agent.transform.position, agent.agent.transform.position) < 30) {
+						if(Vector3.Distance (curAgent.agent.transform.position, agent.agent.transform.position) < 35) {
 							care = true;
 							break;
 						}
