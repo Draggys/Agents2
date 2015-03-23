@@ -34,11 +34,12 @@ public class T5DynamicCar : MonoBehaviour {
 	
 	List<Vector3>[] paths;
 	int[] agentAtWaypoint;
+	bool done = false;
 	
 	// Use this for initialization
 	void Start () {
-		
-		map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
+		Application.runInBackground = true;
+        map = new PolyMapLoader ("polygMap1/x", "polygMap1/y", "polygMap1/goalPos", "polygMap1/startPos", 
 		                         "polygMap1/button");
 		
 		polyData = map.polyData;
@@ -88,7 +89,7 @@ public class T5DynamicCar : MonoBehaviour {
 		
 	}
 	
-	
+	Vector3 blackGoal = Vector3.zero;
 	IEnumerator Move() {
 		bool[] atGoal=new bool[agents.Count];
 		for (int i=0; i<atGoal.Length; i++)
@@ -100,15 +101,19 @@ public class T5DynamicCar : MonoBehaviour {
 			//Check if all agents at goal
 			int agentsAtGoal=0;
 			for(int i=0;i<agents.Count;i++){
-				if(agents[i].isAtGoal(goalInterval))
+				if(agents[i].isAtGoal(goalInterval)) {
 					agentsAtGoal++;
+				}
 			}
+
+
 			if(agentsAtGoal==agents.Count){
 				Debug.Log("Done");
 				float timeAfter=Time.time;
 				Debug.Log("Time:"+(timeAfter-timeBefore));
 				yield break;
 			}
+
 			//Iterate all agents
 			for (int i=0; i<agents.Count; i++) {
 				
@@ -116,13 +121,15 @@ public class T5DynamicCar : MonoBehaviour {
 				int curAgentAtWaypoint=agentAtWaypoint[i];
 				T5Agent curAgent=agents[i];
 				Vector3 current=curPath[curAgentAtWaypoint];
-				
+
 				//If the current agent is at it's goal it should not move anymore
 				if(curAgent.isAtGoal(goalInterval)){
+		//			print (agents[i].id + " done ");
 					curAgent.velocity=Vector3.zero;
 					continue;
 				}
-				
+
+	
 				if(Vector3.Distance(curAgent.agent.transform.position,current)<goalInterval){
 					curAgentAtWaypoint++;
 					agentAtWaypoint[i]=curAgentAtWaypoint;
@@ -139,8 +146,11 @@ public class T5DynamicCar : MonoBehaviour {
 					curAgentAtWaypoint=curPath.Count-1;
 					agentAtWaypoint[i]=curAgentAtWaypoint;
 				}
-				
+
+
 				bool stuck=curAgent.checkStuck(obstacles,current);
+				//stuck = false;
+			newPath:
 				if(stuck){
 					Vector3 pos=curAgent.agent.transform.position;
 					Vector3 towardsWaypoint=Vector3.Normalize(current-pos);
@@ -157,8 +167,12 @@ public class T5DynamicCar : MonoBehaviour {
 					curAgentAtWaypoint=0;
 					agentAtWaypoint[i]=0;
 					current=curPath[curAgentAtWaypoint];
-					
+					print (curAgent.id + " ASTAR");
 				}
+
+				if(curAgent.id == "Agent 1")
+					blackGoal = current;
+			
 				
 				//Vector3 current=curAgent.goalPos;
 				Vector3 dynPVel=curAgent.velocity;
@@ -168,24 +182,62 @@ public class T5DynamicCar : MonoBehaviour {
 				
 				//The code below is used for the 2nd solution of T4
 				
-				curAgent.findMinimumPenaltyVelCar(agents,accMax,current,goalInterval,obstacles,maxWheelAngle
+				curAgent.findMinimumPenaltyVelCar(ref agents,accMax,current,goalInterval,obstacles,maxWheelAngle
 				                                  ,carLength);
-				
+
+
 				Vector3 newRot=curAgent.velocity;
-				Vector3 newVel=curAgent.getCarVelocity();
+			//	Vector3 newVel=curAgent.getCarVelocity();
 				float curVel=curAgent.velSize;
+
 				
+			//	print (curAgent.id + " : " + curAgent.getCarVelocity().magnitude + "\n"
+			//	       + "curVel: " + curVel + " newVel " + newVel);
+
+				bool care = false;
+				bool flag = true;
+				foreach(T5Agent agent in agents) {
+					if(curAgent != agent) {
+						if(Vector3.Distance (curAgent.agent.transform.position, agent.agent.transform.position) < 30) {
+							care = true;
+							break;
+						}
+					}
+				}
+				if(!care) {
+					print (curAgent.id + " I DON'T CARE !!");
+					if(curVel == 0)
+						curVel = 1;
+				/*	if(curAgent.cared) {
+						curAgent.cared = false;
+						yield return null;
+						goto newPath;
+
+					}*/
+				} else {
+					curAgent.cared = true;
+					print (curAgent.id + " I CARE !!");
+				}
+
+
+
 				Vector3 curPos=curAgent.agent.transform.position;
 				
-				Vector3 moveTowards=curPos+newVel;
-				float step=newVel.magnitude*Time.deltaTime;
+			//	Vector3 moveTowards=curPos+newVel;
+			//	float step=newVel.magnitude*Time.deltaTime;
 				//Debug.Log("Step:"+step);
 
 
 				float wheelAngleRad = maxWheelAngle * (Mathf.PI / 180);
 				float dTheta=(curAgent.velSize/carLength)*Mathf.Tan(wheelAngleRad);
 
-				Quaternion newLookRot=Quaternion.Euler(newRot);
+				Quaternion newLookRot;
+				if(care) {
+					newLookRot=Quaternion.Euler(newRot);
+				}
+				else {
+					newLookRot = Quaternion.LookRotation (current - curAgent.agent.transform.position);
+				}
 
 				if(curAgent.agent.transform.rotation!=newLookRot){
 					curAgent.agent.transform.rotation = Quaternion.RotateTowards (curAgent.agent.transform.rotation, newLookRot, dTheta);
@@ -198,8 +250,8 @@ public class T5DynamicCar : MonoBehaviour {
 				float angleRad=curDir.y*(Mathf.PI/180);
 				newPos.x=newPos.x+(curVel*Mathf.Sin(angleRad)*Time.deltaTime);
 				newPos.z=newPos.z+(curVel*Mathf.Cos(angleRad)*Time.deltaTime);
-				curAgent.agent.transform.position=newPos;
 
+				curAgent.agent.transform.position=newPos;
 				
 				yield return null;
 			}
@@ -389,7 +441,9 @@ public class T5DynamicCar : MonoBehaviour {
 		Gizmos.DrawLine (new Vector3 (xHigh, 1, zLow),new Vector3(xHigh,1,zHigh));
 		Gizmos.DrawLine (new Vector3(xHigh,1,zHigh), new Vector3 (xLow, 1, zHigh));
 		Gizmos.DrawLine (new Vector3(xLow,1,zHigh), new Vector3 (xLow, 1, zLow));
-		
+
+		Gizmos.color = Color.red;
+		Gizmos.DrawSphere (blackGoal, 5);
 	}
 	
 	

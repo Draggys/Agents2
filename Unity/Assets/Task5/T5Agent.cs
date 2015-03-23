@@ -18,6 +18,8 @@ public class T5Agent
 		private bool isCar;
 		private float weightPenalty;
 		public float velSize;
+
+	public bool cared = false;
 	
 		public T5Agent (string id, Vector3 start, Vector3 goalPos, int priority, bool isCar)
 		{
@@ -173,7 +175,7 @@ public class T5Agent
 	 * to the variables in the object. These variables will then be used in a calling function
 	 * to update the gameObject.
 	 */
-		public void findMinimumPenaltyVelCar (List<T5Agent> agents, float acceleration, Vector3 waypoint, 
+		public void findMinimumPenaltyVelCar (ref List<T5Agent> agents, float acceleration, Vector3 waypoint, 
 	                                      float goalInterval, List<Obstacle> obstacles, float maxTurning,
 	                                      float carLength)
 		{
@@ -219,8 +221,10 @@ public class T5Agent
 				float timeToCollision = this.calculateTimeToCollision (curVel, agents, goalInterval, waypoint);
 				float colWithObstTime = this.calculateTimeToColWithObstacle (obstacles, curVel, waypoint);
 				if (colWithObstTime < timeToCollision) {
+
 						//Debug.Log (this.id + " ColWithWall before");
 						timeToCollision = colWithObstTime;
+
 				}
 				if (!float.IsPositiveInfinity (timeToCollision)) {
 						//Debug.Log ("TimeToCol:" + timeToCollision);
@@ -324,7 +328,7 @@ public class T5Agent
 		//Debug.Log(this.id+" VelDist:"+velDist);
 		if (velDist == 0) {
 			Debug.Log("VelDist is zero");
-				}
+		}
 
 		
 		}
