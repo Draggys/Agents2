@@ -17,10 +17,15 @@ public struct PathInfo {
 
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	int d = 6;
+	public int d = 6;
 
 	public AStar(ReservationTable rTable) {
 		this.rTable = rTable;
+	}
+	
+	// AStar created with this constructor can (SHOULD) only use AStarSearch
+    public AStar() {
+		print ("THIS ASTAR CONSTRUCTOR CAN (SHOULD) ONLY USE FUNCTIONS INDEPENDENT OF A RESERVATION TABLE");
 	}
 
 	Node GetNode(Node currentNode, int dir) {
