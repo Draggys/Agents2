@@ -16,7 +16,7 @@ public class DiscreteVRP : MonoBehaviour {
 	
 	List<Node> debug = null;
 	Dictionary<Agent, Node> endPos = null;
-	
+
 	void Start () {
 		grid = GameObject.FindGameObjectWithTag ("Grid").GetComponent<Grid> ();
 		
@@ -45,6 +45,10 @@ public class DiscreteVRP : MonoBehaviour {
 		ready = agents.Count;
 		stopwatch.Start();
 	}
+
+	bool STOP = false;
+	int STEPS = 0;
+	int STEPS2 = 0;
 	void Update() {
 		if (ready == agents.Count && agents.Count > 0) {
 			ready = 0;
@@ -85,9 +89,15 @@ public class DiscreteVRP : MonoBehaviour {
 				break;
 			}
 		}
-		if (done && agents.Count > 0) {
+		if (done && agents.Count > 0 && !STOP) {
+			STOP = true;
 			stopwatch.Stop ();
 			print ("Time elapsed: " + stopwatch.Elapsed);
+
+			print ("REAL TIME: " + STEPS);
+			print ("REAL TIME2: " + STEPS2);
+
+			Application.Quit();
 		}
 	}
 	
@@ -115,13 +125,15 @@ public class DiscreteVRP : MonoBehaviour {
 		Node pastNode = null;
 		
 		pathInfo = RequestPath (start, end);
+		if(agent == agents[0])
+			STEPS2 = STEPS2 + 6;
 		
 	/*	
 		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
 		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
 		       " and success: " + pathInfo.reachedDestination + " status: " + pathInfo.status);
 	*/	
-		
+
 		int i = 1;
 		//Node pos = pathInfo.path[pathInfo.path.Count - 1];
 		bool pause = false;
@@ -152,8 +164,14 @@ public class DiscreteVRP : MonoBehaviour {
 				//print (agent.id + " Freeing: " + state.x + ", " + state.y + ", " + state.t);
 			}
 			pastNode = node;
-			//yield return null;
-			yield return new WaitForSeconds (0.2f);
+			//yield return new WaitForSeconds(0.5f);
+			yield return null;
+
+			if(agents[0] == agent) {
+				STEPS++;
+			}
+
+			//yield return new WaitForSeconds (0.5f);
 		}
 		
 		if(pastNode != null) {
