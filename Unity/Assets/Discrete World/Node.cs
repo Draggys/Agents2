@@ -8,6 +8,7 @@ public class Node {
 	public int gridPosX;
 	public int gridPosY;
 	public List<Node> neighbours;
+	public int time = 0;
 
 	public Node(bool walkable, Vector3 worldPosition, int gridPosX, int gridPosY) {
 		neighbours = new List<Node> ();

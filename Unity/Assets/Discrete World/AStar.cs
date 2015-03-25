@@ -7,7 +7,7 @@ public struct PathInfo {
 	public List<Node> path;
 	public bool reachedDestination;  // This is now unreliable due to recursive call of STA*
 	public string status;
-
+	
 	public PathInfo(List<Node> path, bool reachedDestination, String status) {
 		this.path = path;
 		this.reachedDestination = reachedDestination;
@@ -17,22 +17,120 @@ public struct PathInfo {
 
 public class AStar : MonoBehaviour{
 	ReservationTable rTable;
-	public int d = 6;
-
-	public AStar(ReservationTable rTable) {
+	Grid grid;
+	public int d = 7;
+	
+	public AStar(ReservationTable rTable, Grid grid) {
 		this.rTable = rTable;
+		this.grid = grid;
 	}
 	
 	// AStar created with this constructor can (SHOULD) only use AStarSearch
-    public AStar() {
+	public AStar() {
 		print ("THIS ASTAR CONSTRUCTOR CAN (SHOULD) ONLY USE FUNCTIONS INDEPENDENT OF A RESERVATION TABLE");
 	}
-
+	
 	Node GetNode(Node currentNode, int dir) {
 		List<Node> directions = currentNode.neighbours;
 		return directions [dir];
 	}
+	
+	public PathInfo STAStar(Node startNode, Node targetNode, int run = 0) {
+		PriorityQueue<Node, float> frontier = new PriorityQueue<Node, float> ();
+		Dictionary<Node, Node> cameFrom = new Dictionary<Node, Node> ();
+		Dictionary<Node, float> costSoFar = new Dictionary<Node, float> ();
 
+		Dictionary<Node, float> total = new Dictionary<Node, float> ();
+		
+		frontier.Enqueue(startNode, 0f);
+		cameFrom [startNode] = null;
+		costSoFar [startNode] = 0;
+		total [startNode] = 0;
+		
+		Node currentNode;
+		int i = 0;
+		int count = 0;
+		bool once = true;
+
+		while (frontier.Count() != 0) {
+			currentNode = frontier.Dequeue ();
+			
+			List<Node> path = ConstructPath (startNode, currentNode, cameFrom);
+			count = path.Count;
+			
+			if(currentNode.gridPosX == targetNode.gridPosX &&
+			   currentNode.gridPosY == targetNode.gridPosY) {
+				// Staying in place is always a viable option if it's not occupied
+				Node stayNode = new Node(currentNode.walkable, currentNode.worldPosition, currentNode.gridPosX,
+				                         currentNode.gridPosY);
+				stayNode.neighbours = currentNode.neighbours;
+				stayNode.time = path.Count + 1;
+				State state = new State(currentNode.gridPosX, currentNode.gridPosY, path.Count + 1);
+				
+				if(!rTable.Occupied (state)) {
+					float newCost = costSoFar[currentNode];
+					Node node = grid.grid[stayNode.gridPosX, stayNode.gridPosY];
+					float td = TrueDistance(targetNode, node);
+					frontier.Enqueue (stayNode, newCost + td);
+					cameFrom[stayNode] = currentNode;
+					costSoFar[stayNode] = newCost;
+					total[stayNode] = newCost + td;
+				}
+			}
+			if(path.Count == d) {
+				int j = 0;
+				foreach(Node node in path) {
+					Node n = grid.grid[node.gridPosX, node.gridPosY];
+//					print ("[" + node.gridPosX + "," + node.gridPosY + "] " + (j++) + ": ");
+				}
+//				print ("\n");
+				
+				return new PathInfo(path, true, "test");
+			}
+			
+			// Move to best neighbour
+			Node nextNode = null;
+			foreach(Node n in currentNode.neighbours){
+				Node node;
+				if(!costSoFar.ContainsKey (n)){
+					node = new Node(n.walkable, n.worldPosition, n.gridPosX, n.gridPosY);
+					node.neighbours = n.neighbours;
+				}
+				else
+					node = n;
+
+				State state = new State(node.gridPosX, node.gridPosY, path.Count + 1);
+				node.time = path.Count + 1;
+
+				if(!rTable.Occupied (state)) {
+					float newCost = costSoFar[currentNode] + GetCost(currentNode, node);
+	
+					// Find neighbour move
+                    if (!costSoFar.ContainsKey (node) || newCost < costSoFar[node]) {
+						if(node.walkable) {
+							costSoFar[node] = newCost;
+							float td = TrueDistance (targetNode, grid.grid[node.gridPosX, node.gridPosY]);
+							float priority = newCost + td;
+							frontier.Enqueue (node, priority);
+							cameFrom[node] = currentNode;
+							nextNode = node;
+							total[node] = newCost + td;
+						}
+					}
+				}
+			}
+
+
+		}
+        
+        print ("COUNT: " + count);
+        print ("start: " + startNode.gridPosX + ", " + startNode.gridPosY);
+		print ("end: " + targetNode.gridPosX + ", " + targetNode.gridPosY);
+		throw new Exception ("MAIN A* exception");
+	}
+	
+	
+	/*
 	public PathInfo STAStar(Node startNode, Node targetNode, int run = 0) {
 		PathInfo ret;
 		List<Node> path = new List<Node>();
@@ -78,22 +176,28 @@ public class AStar : MonoBehaviour{
 
             path = ConstructPath(startNode, currentNode, cameFrom);
             if(path.Count == d){
+				foreach(Node n in path) {
+					n.time = 0;
+				}
 				ret = new PathInfo(path, false, "Depth reached. endPos: "  + path[path.Count-1].gridPosX + ", " +  + path[path.Count-1].gridPosY);
 				return ret;
 			}
             
             foreach(Node node in currentNode.neighbours){
-				float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
+				node.time = path.Count;
+				print (node.time);
+
+                float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
 
 				State state = new State(node.gridPosX, node.gridPosY, path.Count + 1);
 
-
+/*
 				if(currentNode == startNode) {
 					State initState = state;
 					State thisState = new State(currentNode.gridPosX, currentNode.gridPosY, 1);
 					initState.t = -1;
-					if(rTable.Occupied(initState) && rTable.Occupied (thisState))
-						continue;
+			//		if(rTable.Occupied(initState) && rTable.Occupied (thisState))
+			//			continue;
 				}
 
 
@@ -103,6 +207,7 @@ public class AStar : MonoBehaviour{
 							if(startNode != targetNode) {
 								costSoFar[node] = newCost;
 								float td = TrueDistance (targetNode, node);
+                                //float td = GridHeuristic(targetNode, node);
 								float priority = newCost + td;
 								
 								G[node] = td;
@@ -121,9 +226,13 @@ public class AStar : MonoBehaviour{
 						}
 					}
 				}
+				
+				else if(frontier.Count() == 0) {
+				}
 			}
 		}
 
+		throw new Exception ("no path found2");
 
 		if (path.Count != 0) {
 			Node node = path [path.Count - 1];
@@ -164,8 +273,8 @@ public class AStar : MonoBehaviour{
 		return STAStar (startNode, startNode, 2);
 	}
 
-
-
+*/
+	
 	public List<Node> AStarSearch(Node startNode, Node targetNode) {
 		if (startNode == targetNode) {
 			return new List<Node>();
@@ -174,19 +283,19 @@ public class AStar : MonoBehaviour{
 		PriorityQueue<Node, float> frontier = new PriorityQueue<Node, float> ();
 		Dictionary<Node, Node> cameFrom = new Dictionary<Node, Node> ();
 		Dictionary<Node, float> costSoFar = new Dictionary<Node, float> ();
-
+		
 		frontier.Enqueue(startNode, 0f);
 		cameFrom [startNode] = null;
 		costSoFar [startNode] = 0;
-
+		
 		Node currentNode;
 		while (frontier.Count() != 0) {
 			currentNode = frontier.Dequeue ();
-
+			
 			if(currentNode == targetNode) {
 				return ConstructPath (startNode, targetNode, cameFrom);
 			}
-
+			
 			foreach(Node node in currentNode.neighbours){
 				float newCost = costSoFar[currentNode] + GetCost (currentNode, node);
 				if (!costSoFar.ContainsKey (node) || newCost < costSoFar[node]) {
@@ -200,18 +309,23 @@ public class AStar : MonoBehaviour{
 				}
 			}
 		}
+		throw new Exception ("MINI A* exception");
 		return new List<Node> ();
 	}
-
+	
 	float Heuristic(Vector3 A, Vector3 B) {
 		return Mathf.Abs (A.x - B.x) + Mathf.Abs (A.y - B.y);
 	}
-
+	
 	float GridHeuristic(Node A, Node B) {
 		return Mathf.Abs (A.gridPosX - B.gridPosX) + Mathf.Abs (A.gridPosY - B.gridPosY);
 	}
-
+	
 	public float TrueDistance(Node A, Node B) {
+		if (A.gridPosX == B.gridPosX &&
+		    A.gridPosY == B.gridPosY) {
+			return 0;
+		}
 		List<Node> path = AStarSearch (A, B);
 		float cost = 0;
 		Node pastNode = A;
@@ -219,9 +333,12 @@ public class AStar : MonoBehaviour{
 			cost = cost + GetCost (pastNode, node);
 			pastNode = node;
 		}
+		
+		return path.Count * 10;
+		
 		return cost;
 	}
-
+	
 	List<Node> ConstructPath(Node start, Node target, Dictionary<Node, Node> cameFrom) {
 		Node currentNode = target;
 		List<Node> path = new List<Node>();
@@ -230,14 +347,14 @@ public class AStar : MonoBehaviour{
 			currentNode = cameFrom[currentNode];
 		}
 		path.Reverse ();
-
+		
 		return path;
 	}
-
+	
 	public float GetCost(Node from, Node to) {
 		float straightCost = 10f;
-		float diagonalCost = 14f;
-
+		float noCost = 0f;
+		
 		if (from.gridPosX == to.gridPosX && from.gridPosY + 1 == to.gridPosY) // up
 			return straightCost;
 		if (from.gridPosX + 1 == to.gridPosX && from.gridPosY == to.gridPosY) // right
@@ -246,10 +363,11 @@ public class AStar : MonoBehaviour{
 			return straightCost;
 		if (from.gridPosX - 1 == to.gridPosX && from.gridPosY == to.gridPosY) // left
 			return straightCost;
-
-		print ("RETURNING DIAGONAL COST FOR: " + from.gridPosX + ", " + from.gridPosY + "->" +
-		       to.gridPosX + ", " + to.gridPosY);
-
-		return diagonalCost;
+		
+		if (from.gridPosX == to.gridPosX && 
+		    from.gridPosY == to.gridPosY)
+			return 0f;
+		
+		throw new Exception ("GetCost exception");
 	}
 }

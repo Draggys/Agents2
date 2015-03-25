@@ -16,23 +16,23 @@ public class DiscreteVRP : MonoBehaviour {
 	
 	List<Node> debug = null;
 	Dictionary<Agent, Node> endPos = null;
-
+	
 	void Start () {
 		grid = GameObject.FindGameObjectWithTag ("Grid").GetComponent<Grid> ();
 		
-		astar = new AStar (grid.rTable);
+		astar = new AStar (grid.rTable, grid);
 		endPos = new Dictionary<Agent, Node> ();
 		for(int i = 0; i < grid.mapData.start.Count; i++) {
 			Vector2 pos = grid.mapData.start[i];
 			Node node = grid.grid[(int)(pos[0]), (int)(pos[1])];
 			agents.Add (new Agent("Agent " + i, node, new List<Node> ()));
 			agents [i].agent.renderer.material.color = Color.blue;
-
+			agents [i].wpReached = true;
 			Vector2 end = grid.mapData.end[i];
 			Node endNode = grid.grid[(int)end[0], (int)end[1]];
 			endPos[agents[i]] = endNode;
 		}
-
+		
 		List<Node> customers = new List<Node> ();
 		for (int i = 0; i < grid.mapData.customers.Count; i++) {
 			Vector2 pos = grid.mapData.customers[i];
@@ -40,64 +40,68 @@ public class DiscreteVRP : MonoBehaviour {
 			customers.Add (node);
 		}
 		debug = new List<Node> (customers);
-
+		
 		vrp = new VRPD (customers, agents.Count);
 		ready = agents.Count;
 		stopwatch.Start();
 	}
-
+	
 	bool STOP = false;
-	int STEPS = 0;
-	int STEPS2 = 0;
+	Dictionary<Agent, int> steps = new Dictionary<Agent, int> ();
+	int priority = 0;
+	bool moveTowardsGoal = false;
 	void Update() {
-		if (ready == agents.Count && agents.Count > 0) {
-			ready = 0;
-			List<Agent> reachedAgents = new List<Agent> ();
-			foreach(Agent agent in agents) {
-				if(agent.wpReached) {
-					reachedAgents.Add (agent);
-				}
-				else {
-					if(agent.waypoints.Count == 0) {
-						agent.waypoints.Add (agent.pos);
-					}
-					StartCoroutine (Move (agent, agent.waypoints[0]));
-				}
-			}
-
-			while(reachedAgents.Count != 0) {
-				if(vrp.customers.Count == 0) {
-					foreach(Agent agent in reachedAgents) {
-						agent.waypoints.Add (endPos[agent]);
-						StartCoroutine (Move (agent, endPos[agent]));
-					}
-					break;
-				}
-				KeyValuePair<Agent, Node> an = vrp.NextAgentAndCustomer(reachedAgents, endPos);
-				an.Key.wpReached = false;
-				an.Key.waypoints.Add (an.Value);
-				StartCoroutine (Move (an.Key, an.Value));
-				reachedAgents.Remove (an.Key);
-			}
-		}
+		// TIME START
 		bool done = true;
-		for (int i = 0; i < agents.Count; i++) {
-			Vector2 end = grid.mapData.end[i];
-			Node node = grid.grid[(int)end[0], (int)end[1]];
-			if(agents[i].pos != node) {
+		foreach(Agent agent in agents) {
+			if(!(agent.pos.gridPosX == endPos[agent].gridPosX &&
+			   agent.pos.gridPosY == endPos[agent].gridPosY)) {
 				done = false;
 				break;
 			}
 		}
-		if (done && agents.Count > 0 && !STOP) {
+
+		if (done && !STOP) {
 			STOP = true;
-			stopwatch.Stop ();
-			print ("Time elapsed: " + stopwatch.Elapsed);
+			int longest = 0;
+			foreach(Agent agent in agents) {
+				if(steps[agent] > longest) 
+					longest = steps[agent];
+			}
+			print ("Steps: " + longest);
+		}
+		// TIME END
 
-			print ("REAL TIME: " + STEPS);
-			print ("REAL TIME2: " + STEPS2);
+		List<Agent> reachedAgents = new List<Agent> ();
+		foreach (Agent agent in agents) {
+			if(agent.wpReached)
+				reachedAgents.Add (agent);
+		}
 
-			Application.Quit();
+		if (reachedAgents.Count == agents.Count) {
+			while(reachedAgents.Count > 0) {
+				try{
+					// Get customer and nearest agent
+					KeyValuePair<Agent, Node> an = vrp.NextAgentAndCustomer (reachedAgents, endPos);
+					an.Key.wpReached = false;
+					an.Key.waypoints.Add (an.Value);
+					StartCoroutine (Move (an.Key, an.Value));
+					reachedAgents.Remove (an.Key);
+				}
+				catch{
+					// All customers are accounted for
+					if(reachedAgents.Count == agents.Count)
+						moveTowardsGoal = true;
+					foreach(Agent agent in reachedAgents) {
+						// Move towards end position
+						agent.wpReached = false;
+						agent.waypoints.Add (endPos[agent]);
+						StartCoroutine (Move (agent, endPos[agent]));
+					}
+					reachedAgents.Clear();
+					break;
+				}
+			}
 		}
 	}
 	
@@ -116,7 +120,7 @@ public class DiscreteVRP : MonoBehaviour {
 	}
 	
 	IEnumerator Move(Agent agent, Node end) {
-		State initState = new State(agent.pos.gridPosX, agent.pos.gridPosY, -1);
+		State initState = new State(agent.pos.gridPosX, agent.pos.gridPosY, 1);
 		grid.rTable.Add (initState, 1);
 		
 		Node start = agent.pos;
@@ -125,15 +129,13 @@ public class DiscreteVRP : MonoBehaviour {
 		Node pastNode = null;
 		
 		pathInfo = RequestPath (start, end);
-		if(agent == agents[0])
-			STEPS2 = STEPS2 + 6;
 		
-	/*	
+		/*
 		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
 		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
 		       " and success: " + pathInfo.reachedDestination + " status: " + pathInfo.status);
-	*/	
-
+		*/
+		
 		int i = 1;
 		//Node pos = pathInfo.path[pathInfo.path.Count - 1];
 		bool pause = false;
@@ -146,6 +148,7 @@ public class DiscreteVRP : MonoBehaviour {
 						break;
 					}
 				}
+				walkable=true;//TODO is this ok?
 				if(walkable) {
 					agent.agent.transform.position = node.worldPosition;
 					agent.pos = node;
@@ -164,14 +167,14 @@ public class DiscreteVRP : MonoBehaviour {
 				//print (agent.id + " Freeing: " + state.x + ", " + state.y + ", " + state.t);
 			}
 			pastNode = node;
-			//yield return new WaitForSeconds(0.5f);
 			yield return null;
-
-			if(agents[0] == agent) {
-				STEPS++;
-			}
-
-			//yield return new WaitForSeconds (0.5f);
+			//yield return new WaitForSeconds(0.5f);
+			if(!steps.ContainsKey (agent))
+				steps[agent] = 0;
+			steps[agent] = steps[agent] + 1;
+			grid.rTable.Free (initState);
+			
+			//yield return new WaitForSeconds (0.2f);
 		}
 		
 		if(pastNode != null) {
@@ -182,29 +185,28 @@ public class DiscreteVRP : MonoBehaviour {
 		}
 		
 		if (agent.pos == end) {
-			debug.Remove (agent.waypoints[0]);
+			if (agent.waypoints.Count > 1)
+				agent.waypoints.RemoveAt (agent.wp);
+			//			print ("End dest");
 
-			agent.waypoints.RemoveAt (0);
-			print ("End dest");
-			agent.wpReached = true;
+			// Reached goal (perhaps early)
 		}
-		//agent.wpReached = false;
-		
-		
+
+		debug.Remove (agent.waypoints [agent.waypoints.Count - 1]);
+		agent.wpReached = true;
 		ready++;
-		grid.rTable.Free (initState);
 	}
 	
 	Node GreedyNext(Agent agent) {
 		if (agent.wpReached) {
 			agent.wpReached = false;
 			Node node = vrp.NextCustomer (agent, endPos[agent]);
-
+			
 			if(node == null){
 				agent.waypoints.Add (endPos[agent]);
 				return endPos[agent];
 			}
-
+			
 			agent.waypoints.Add (node);
 			return node;
 		}
@@ -213,21 +215,21 @@ public class DiscreteVRP : MonoBehaviour {
 		}
 		return agent.waypoints [0];
 	}
-
+	
 	void OnDrawGizmos() {
 		
 		Gizmos.color = Color.cyan;
-		/*
+
 		foreach (KeyValuePair<State, int> p in grid.rTable.rTable) {
 			if(p.Value != 0)
 				Gizmos.DrawCube (grid.grid [p.Key.x, p.Key.y].worldPosition - Vector3.up, Vector3.one);
 		}
-		*/
+
 		Gizmos.color = Color.yellow;
 		if (debug != null) {
 			foreach (Node node in debug) {
 				Gizmos.DrawCube (node.worldPosition, Vector3.one);
-			//	print ("drawing: " + node.gridPosX + ", " + node.gridPosY);
+				//	print ("drawing: " + node.gridPosX + ", " + node.gridPosY);
 			}
 		}
 	}

@@ -38,7 +38,7 @@ public class DiscreteMovement : MonoBehaviour {
 	void Start () {
 		grid = GameObject.FindGameObjectWithTag ("Grid").GetComponent<Grid> ();
 
-		astar = new AStar (grid.rTable);
+		astar = new AStar (grid.rTable, grid);
 
 		for(int i = 0; i < grid.mapData.start.Count; i++) {
 			Vector2 pos = grid.mapData.start[i];
@@ -47,49 +47,31 @@ public class DiscreteMovement : MonoBehaviour {
 			Vector2 end = grid.mapData.end[i];
 			Node endNode = grid.grid[(int)end[0], (int)end[1]];
 			temp.Add(endNode);
-			agents.Add (new Agent("Agent " + i, node, temp));
-			agents [i].agent.renderer.material.color = Color.blue;
 
+			agents.Add (new Agent("Agent " + i, node, temp));
+			// test
+			/*
+			temp.Clear ();
+			temp.Add (grid.grid[1,0]);
+			agents.Add (new Agent("TestAgent ", grid.grid[0,0], temp));
+			State state = new State(1, 0, 2);
+			grid.rTable.Add (state, 1);
+			*/
+			agents [i].agent.renderer.material.color = Color.blue;
 		}
 		stopwatch.Start();
 		ready = agents.Count;
 
-		/*
-		Node startNode = grid.grid [Convert.ToInt32(grid.mapData.start.x), Convert.ToInt32 (grid.mapData.start.y)];
-		Node endNode = grid.grid [Convert.ToInt32 (grid.mapData.end.x), Convert.ToInt32 (grid.mapData.end.y)];
-
-		List<Node> w1 = new List<Node> ();
-		w1.Add (grid.grid [19, 9]);
-		w1.Add (grid.grid [0, 9]);
-		agents.Add (new Agent("Red", grid.grid[0, 9], w1));
-		//agents.Add (new Agent("Red", grid.grid[8, 9], w1));
-		agents [0].agent.renderer.material.color = Color.red;
-		
-		List<Node> w2 = new List<Node> ();
-		w2.Add (grid.grid [0, 9]);
-		w2.Add (grid.grid [19, 9]);
-		agents.Add (new Agent ("Magenta", grid.grid[19, 9], w2));
-		agents [1].agent.renderer.material.color = Color.magenta;
-		
-		List<Node> w3 = new List<Node> ();
-		w3.Add (grid.grid [19, 8]);
-		w3.Add (grid.grid [0, 8]);
-		agents.Add (new Agent ("Yellow", grid.grid[1, 9], w3));
-		agents [2].agent.renderer.material.color = Color.yellow;
-		
-		List<Node> w4 = new List<Node> ();
-		w4.Add (grid.grid [9, 9]);
-		agents.Add (new Agent ("Black", grid.grid[9, 9], w4));
-		agents [3].agent.renderer.material.color = Color.black;
-		
-		ready = agents.Count;
-		*/
+		Application.runInBackground = true;
 	}
-	
+
+	Dictionary<Agent, int> steps = new Dictionary<Agent, int> ();
+
+	bool STOP = false;
 	int priority = 0;
 	void Update() {
+
 		if (ready == agents.Count && agents.Count > 0) {
-			
 			State state;
 			
 			ready = 0;
@@ -99,7 +81,7 @@ public class DiscreteMovement : MonoBehaviour {
 				index = (index + 1) % agents.Count;
 			}
 			
-			if (priority++ == 3 || agents [index].pos == agents [index].waypoints [agents [index].wp]) {
+			if (priority++ == 1) {
 				readyS = (readyS + 1) % agents.Count;
 				priority = 0;
 			}
@@ -108,16 +90,26 @@ public class DiscreteMovement : MonoBehaviour {
 		for (int i = 0; i < agents.Count; i++) {
 			Vector2 end = grid.mapData.end[i];
 			Node node = grid.grid[(int)end[0], (int)end[1]];
-			if(agents[i].pos != node) {
+			if(!(agents[i].pos.gridPosX == node.gridPosX && 
+			   agents[i].pos.gridPosY == node.gridPosY)) {
 				done = false;
 				break;
 			}
 		}
-		if (done && agents.Count > 0) {
+
+		if (done && agents.Count > 0 && !STOP) {
+			STOP = true;
 			stopwatch.Stop ();
 			print ("Time elapsed: " + stopwatch.Elapsed);
+
+			int longest = 0;
+			foreach(Agent agent in agents) {
+				if(steps[agent] > longest) 
+					longest = steps[agent];
+			}
+			print ("Steps: " + longest);
 		}
-		
+
 		foreach (Agent agent in agents) {
 			foreach(Agent agent2 in agents) {
 				if(agent != agent2) {
@@ -145,7 +137,7 @@ public class DiscreteMovement : MonoBehaviour {
 	}
 	
 	IEnumerator Move(Agent agent, Node end) {
-		State initState = new State(agent.pos.gridPosX, agent.pos.gridPosY, -1);
+		State initState = new State(agent.pos.gridPosX, agent.pos.gridPosY, 1);
 		grid.rTable.Add (initState, 1);
 		
 		Node start = agent.pos;
@@ -154,7 +146,7 @@ public class DiscreteMovement : MonoBehaviour {
 		Node pastNode = null;
 		
 		pathInfo = RequestPath (start, end);
-		
+
 		/*
 		print (agent.id + " Requesting: " + "[" + start.gridPosX + ", " + start.gridPosY + "] -> [" +
 		       end.gridPosX + "," + end.gridPosY + "]\n" + "With result: " + pathInfo.path.Count +
@@ -173,6 +165,7 @@ public class DiscreteMovement : MonoBehaviour {
 						break;
 					}
 				}
+				walkable=true;//TODO is this ok?
 				if(walkable) {
 					agent.agent.transform.position = node.worldPosition;
 					agent.pos = node;
@@ -192,7 +185,13 @@ public class DiscreteMovement : MonoBehaviour {
 			}
 			pastNode = node;
 			//yield return null;
-			yield return new WaitForSeconds (0.2f);
+			yield return new WaitForSeconds(0.5f);
+			if(!steps.ContainsKey (agent))
+				steps[agent] = 0;
+			steps[agent] = steps[agent] + 1;
+			grid.rTable.Free (initState);
+
+			//yield return new WaitForSeconds (0.2f);
 		}
 		
 		if(pastNode != null) {
@@ -206,13 +205,12 @@ public class DiscreteMovement : MonoBehaviour {
 
 			if (agent.waypoints.Count > 1)
 				agent.waypoints.RemoveAt (agent.wp);
-			print ("End dest");
+//			print ("End dest");
 		}
 		//agent.wpReached = false;
 		
 		
 		ready++;
-		grid.rTable.Free (initState);
 	}
 	
 	Node GreedyNext(Agent agent) {
@@ -239,13 +237,14 @@ public class DiscreteMovement : MonoBehaviour {
 	void OnDrawGizmos() {
 		
 		Gizmos.color = Color.cyan;
-		/*
+		
 		foreach (KeyValuePair<State, int> p in grid.rTable.rTable) {
-			if(p.Value != 0)
+			if (p.Value != 0)
 				Gizmos.DrawCube (grid.grid [p.Key.x, p.Key.y].worldPosition - Vector3.up, Vector3.one);
-		}
-		*/
-		Gizmos.color = Color.yellow;
+        }
+        
+        
+        Gizmos.color = Color.yellow;
 		if (debug != null) {
 			foreach (Node node in debug) {
 				Gizmos.DrawCube (node.worldPosition, Vector3.one);

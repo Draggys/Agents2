@@ -6,10 +6,14 @@ public class VRPD {
     
     public List<Node> customers;
 	int bound;
+	int size;
+	AStar astar;
 
     public VRPD(List<Node> customers, int agents) {
         this.customers = customers;
 		this.bound = agents * 2;
+		this.size = customers.Count;
+		astar = new AStar ();
     }
 
 	public Node NextCustomer(Agent agent, Node endPos) {
@@ -61,8 +65,13 @@ public class VRPD {
 		float first = Mathf.Abs (customer.gridPosX - agent.pos.gridPosX) + Mathf.Abs (customer.gridPosY - agent.pos.gridPosY);
 		float second = Mathf.Abs (endPos.gridPosX - customer.gridPosX) + Mathf.Abs (endPos.gridPosY - customer.gridPosY);
 
+		if (customers.Count / size > 0.5f)
+			return first;
+		return first + second;
+		/*
 		if(customers.Count < bound)
 			return first + second;
 		return first;
+		*/
 	}
 }

@@ -42,6 +42,22 @@ public class Grid : MonoBehaviour {
 		                             "discObst2/discObst2GoalPos",
 		                             "discObst2/discObst2CustomerPos");
 		}
+
+		if (map == 3) {
+			mapLoader = new MapLoader (new Vector2 (11, 11), 0.5f);
+			mapData = mapLoader.LoadMap ("discObst1/exam/discObst1", 
+			                             "discObst1/exam/discObst1StartPos",
+			                             "discObst1/exam/discObst1GoalPos",
+			                             "discObst1/exam/discObst1CustomerPos");
+		}
+
+		if (map == 4) {
+			mapLoader = new MapLoader (new Vector2 (20, 20), 0.5f);
+			mapData = mapLoader.LoadMap ("discObst2/exam/discObst2", 
+			                             "discObst2/exam/discObst2StartPos",
+			                             "discObst2/exam/discObst2GoalPos",
+			                             "discObst2/exam/discObst2CustomerPos");
+		}
         
         nodeDiameter = mapData.nodeRadius * 2;
 		gridWorldSize = mapData.gridWorldSize;
@@ -132,6 +148,21 @@ public class Grid : MonoBehaviour {
 			                             "discObst2/discObst2StartPos",
 			                             "discObst2/discObst2GoalPos",
 			                             "discObst2/discObst2CustomerPos");
+			}
+			if (map == 3) {
+				mapLoader = new MapLoader (new Vector2 (11, 11), 0.5f);
+				mapData = mapLoader.LoadMap ("discObst1/exam/discObst1", 
+				                             "discObst1/exam/discObst1StartPos",
+				                             "discObst1/exam/discObst1GoalPos",
+				                             "discObst1/exam/discObst1CustomerPos");
+			}
+			
+			if (map == 4) {
+				mapLoader = new MapLoader (new Vector2 (20, 20), 0.5f);
+				mapData = mapLoader.LoadMap ("discObst2/exam/discObst2", 
+				                             "discObst2/exam/discObst2StartPos",
+				                             "discObst2/exam/discObst2GoalPos",
+				                             "discObst2/exam/discObst2CustomerPos");
 			}
 
 			nodeDiameter = mapData.nodeRadius * 2;
