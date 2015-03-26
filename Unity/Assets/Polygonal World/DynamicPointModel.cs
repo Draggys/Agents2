@@ -71,26 +71,30 @@ public class DynamicPointModel : MonoBehaviour, Model {
 			dir=Vector3.Normalize(current-agent.agent.transform.position);
 
 			Vector3 normVel=Vector3.Normalize(dynPVel);
-			
+
 			//The change is the difference between the direction and the velocity vector
 			Vector3 change=Vector3.Normalize(dir-normVel);
-			
+
+			/*
 			dynPVel.x=dynPVel.x+accMax*change.x*Time.deltaTime;
 			dynPVel.z=dynPVel.z+accMax*change.z*Time.deltaTime;
+			*/
 
-			// start handle collision
-			d_dir = dir;
-			Vector3 avoidance = Vector3.zero;
-			Vector3 lookAhead = dir * LAScale;
-			Line LAline = new Line(agent.agent.transform.position, 
-			                       agent.agent.transform.position + lookAhead);
-			if(collision.IntersectsWithObstacle (LAline)) {
-				//dynPVel.x = -dynPVel.x;
-				//dynPVel.z = -dynPVel.z;
+			float accInX=change.x/(Mathf.Abs(change.x)+Mathf.Abs(change.z));
+			float accInZ=change.z/(Mathf.Abs(change.x)+Mathf.Abs(change.z));
+			
+			if(float.IsNaN(accInX)){
+				accInX=0;
 			}
+			if(float.IsNaN(accInZ)){
+				accInZ=0;
+			}
+			
+			dynPVel.x=dynPVel.x+accMax*accInX*Time.deltaTime;
+			dynPVel.z=dynPVel.z+accMax*accInZ*Time.deltaTime;
 
 			agent.agent.transform.position = agent.agent.transform.position+dynPVel;
-			
+
 
 			yield return null;
 		}

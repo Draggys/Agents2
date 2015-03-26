@@ -76,20 +76,21 @@ public class DynamicCarModel : MonoBehaviour, Model {
 					firstStop = true;
 				}
 			}
-			float distToTarget = Vector3.Distance (current, agent.agent.transform.position);
-			float neededDistToStop = (Mathf.Pow (dynVel, 2) / 2 * (dynF / dynMass));
-			
+		//	float distToTarget = Vector3.Distance (current, agent.agent.transform.position);
+		//	float neededDistToStop = (Mathf.Pow (dynVel, 2) / 2 * (dynF / dynMass));
 
-			//if(distToTarget > neededDistToStop) {
-			dynVel = dynVel + accMax*Time.deltaTime;
-			//}
-			//else{
-			//	dynVel = dynVel - (dynF / dynMass);
-			//}
-			
-		//	if(dynVel < 0)
-		//		dynVel = 0;
-			
+	
+			float distToTarget = Vector3.Distance (current, transform.position);
+			float neededDistToStop = (Mathf.Pow (dynVel, 2) / 2 * (dynF / dynMass));
+				
+			//print (dynVel);
+			if(distToTarget > neededDistToStop) {
+				dynVel = dynVel + accMax*Time.deltaTime;
+			}
+			else{
+				dynVel = dynVel - accMax*Time.deltaTime;
+			}
+
 			float wheelAngleRad = maxWheelAngle * (Mathf.PI / 180);
 			float dTheta=(dynVel/carLength)*Mathf.Tan(wheelAngleRad);
 			Quaternion theta = Quaternion.LookRotation (current - agent.agent.transform.position);
